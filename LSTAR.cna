@@ -1,16 +1,23 @@
 popup beacon_bottom {
-    menu "LSTAR"{
-      include(script_resource("modules/InfoCollect.cna"));
-      include(script_resource("modules/AvSearch.cnf"));
-      include(script_resource("modules/IntrScan.cna"));
-      include(script_resource("modules/IntrAgent.cna"));
-      include(script_resource("modules/AuthPromote.cna"));
-      include(script_resource("modules/AuthMaintain.cna"));
-      include(script_resource("modules/PassCapture.cna"));
-      include(script_resource("modules/LateMovement.cna"));
-      include(script_resource("modules/TraceClean.cna"));
-      include(script_resource("modules/BypassCxk.cna"));
-      include(script_resource("modules/HavingFun.cna"));
+  menu "LSTAR"{
+    include(script_resource("modules/InfoCollect.cna"));
+    include(script_resource("modules/AvSearch.cna"));
+    include(script_resource("modules/IntrScan.cna"));
+    include(script_resource("modules/IntrAgent.cna"));
+    include(script_resource("modules/AuthPromote.cna"));
+    include(script_resource("modules/AuthMaintain.cna"));
+    include(script_resource("modules/PassCapture.cna"));
+    include(script_resource("modules/LateMovement.cna"));
+    include(script_resource("modules/TraceClean.cna"));
+    include(script_resource("modules/BypassCxk.cna"));
+    include(script_resource("modules/HavingFun.cna"));
+  }
 }
 
+popup my_help{
+  item("&LSTAR",{url_open("https://github.com/lintstar/LSTAR")});
+  separator();
+  item("&凌星阁",{url_open("https://sec.lintstar.top")}); 
 }
+
+menubar("AboutMe", "my_help");

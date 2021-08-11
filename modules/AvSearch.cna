@@ -1,0 +1,3 @@
+item "杀软检测" {
+    bshell($1,"wmic /node:localhost /namespace:\\\\root\\SecurityCenter2 path AntiVirusProduct Get DisplayName,productState,pathToSignedProductExe | findstr /V /B /C:displayName || echo No Antivirus installed");
+}

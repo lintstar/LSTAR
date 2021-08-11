@@ -20,6 +20,70 @@
 
 [**A-Team CobaltStrike-Toolset**](https://github.com/QAX-A-Team/CobaltStrike-Toolset)
 
+# 2021.08.11 更新
+
+## InfoCollect
+
+新增 CheckVM 检测目标是否为虚拟机
+
+![20210808_2213](LSTAR/20210808221427.png)
+
+## AVSearch
+
+由于之前的脚本有一定概率失败：
+
+![image-20210808222325403](LSTAR/image-20210808222325403.png)
+
+更新了新的检测杀软方式
+
+![image-20210808221945724](LSTAR/20210808221945.png)
+
+## AuthPromote
+
+**修复了之前提权模块的 BUG**
+
+![image-20210811105401723](LSTAR/20210811105401.png)
+
+## PassCapture
+
+### Mimikatz 相关
+
+![image-20210811104834675](LSTAR/20210811104834.png)
+
+### Lazagne
+
+**实战测试比较好用的检索主机密码工具 （上传运行后会自动删除 exe 文件）**
+
+![image-20210811102145547](LSTAR/20210811102145.png)
+
+### 浏览器密码
+
+![image-20210811105159479](LSTAR/20210811105159.png)
+
+### Navicat Xshell 等本机软件
+
+![image-20210811105105056](LSTAR/20210811105105.png)
+
+### FakeTheScreen
+
+**优化了针对 Windows10和 Windows7不同的钓鱼密码窃取**
+
+![image-20210811095234252](LSTAR/20210811095234.png)
+
+**由于伪造页面效果一言难尽，只建议在准备鱼死网破时使用：**
+
+![image-20210811094621414](LSTAR/20210811094621.png)
+
+## AboutMe
+
+**添加了 AboutMe 帮助菜单**
+
+![image-20210811105716461](LSTAR/20210811105716.png)
+
+**方便跳转 凌星阁**
+
+![image-20210811110156391](LSTAR/20210811110156.png)
+
 # InfoCollect
 
 添加了 Netview 和 Powerview 功能

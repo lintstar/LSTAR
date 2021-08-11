@@ -1,4 +1,16 @@
 menu "信息收集" {
+	item "GetIP（云函数）" {
+		brun($bid, "curl cip.cc");
+	}
+	item "Check VM" {
+		local('$bid');
+		foreach $bid ($1){
+			binput($1, "powershell-import Check-VM.ps1");
+			bpowershell_import($1, script_resource("/scripts/InfoCollect/Check-VM.ps1"));
+			binput($1, "powershell Check-VM");
+			bpowershell($1, "Check-VM");
+		}			
+	}
 	menu "单机常用命令" {
 		item "systeminfo" {
 			$bid = $1['@'];

@@ -22,7 +22,7 @@ menu "内网扫描" {
     }
     sub fscan_run{
       $exec = $3['exec'];
-      bshell($bid, "$exec");
+      brun($bid, "$exec");
     }
     item "删除fscan"{
       $bid = $1['@'];
@@ -94,7 +94,7 @@ menu "内网扫描" {
 		}
 		sub TailorScan_run{
       $exec = $3['exec'];
-			bshell($bid, "$exec");
+			brun($bid, "$exec");
 		}
     item "删除TailorScan"{
 			$bid = $1['@'];
