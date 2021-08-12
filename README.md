@@ -2,23 +2,17 @@
 
 **本着简化 CS 右键和方便自己集成的目的，对 Reference 里的项目进行了缝合以及二次开 (抄) 发 (袭)** 
 
-**并添加了 Cxk 限时免杀的 mimikatz 和 adduser 等功能**
+**并添加了虚拟机/AV 检测、主机相关密码抓取、 Cxk 限时免杀的 mimikatz 和 adduser 等功能**
 
 **项目树较为简单直观 且方便 DIY：**
 
-![image-20210707141929031](LSTAR/image-20210707141929031.png)
+![image-20210812113750414](https://qiniuyun.lintstar.top/hexo/20210812113750.png)
 
-**由于作案时间有限 很多功能待实战测试去除和优化**
-
-# Reference
-
-[**梼杌 - taowu-cobalt-strike**](https://github.com/pandasec888/taowu-cobalt-strike)
-
-[**Z1-AggressorScripts**](https://github.com/z1un/Z1-AggressorScripts)
-
-[**九世自开 csplugin**](https://github.com/422926799/csplugin)
-
-[**A-Team CobaltStrike-Toolset**](https://github.com/QAX-A-Team/CobaltStrike-Toolset)
+>**CobaltStrike 主机上线微信通知插件：**
+>
+>**如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
+>
+>**如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
 
 # 2021.08.11 更新
 
@@ -83,6 +77,14 @@
 **可以跳转 凌星阁**
 
 ![image-20210811110156391](LSTAR/20210811110156.png)
+
+# Reference
+
+[**梼杌 - taowu-cobalt-strike**](https://github.com/pandasec888/taowu-cobalt-strike)
+
+[**Z1-AggressorScripts**](https://github.com/z1un/Z1-AggressorScripts)
+
+[**九世自开 csplugin**](https://github.com/422926799/csplugin)
 
 # InfoCollect
 
