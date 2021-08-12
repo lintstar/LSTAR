@@ -46,11 +46,11 @@
 
 **使用反射 DLL 模块通过 API 对系统服务、计划任务等常见权限维持方法进行可视化操作，非 常 好 用。（作者原话）**
 
-![image-20210812170907609](https://qiniuyun.lintstar.top/hexo/20210812170907.png)
+![image-20210812170907609](LSTAR/20210812170907.png)
 
 **说明文档：**https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md
 
-![image-20210812170946202](https://qiniuyun.lintstar.top/hexo/20210812170946.png)
+![image-20210812170946202](LSTAR/20210812170946.png)
 
 ## PassCapture
 
