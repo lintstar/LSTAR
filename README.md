@@ -14,7 +14,7 @@
 >
 >**如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
 
-# 2021.08.11 更新
+# 2021.08.12 更新
 
 ## InfoCollect
 
@@ -37,6 +37,20 @@
 **修复了之前提权模块的 BUG**
 
 ![image-20210811105401723](LSTAR/20210811105401.png)
+
+## AuthMaintain
+
+**EasyPersistent：**https://github.com/yanghaoi/CobaltStrike_CNA/tree/main/EasyCNA
+
+**新增一个用于 Windows 系统上权限维持的 Cobalt Strike CNA 脚本**
+
+**使用反射 DLL 模块通过 API 对系统服务、计划任务等常见权限维持方法进行可视化操作，非 常 好 用。（作者原话）**
+
+![image-20210812170907609](https://qiniuyun.lintstar.top/hexo/20210812170907.png)
+
+**说明文档：**https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md
+
+![image-20210812170946202](https://qiniuyun.lintstar.top/hexo/20210812170946.png)
 
 ## PassCapture
 

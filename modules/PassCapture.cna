@@ -164,10 +164,10 @@ menu "密码抓取" {
     }    
   }
 	item "LaZagne 检索主机密码" {   # https://github.com/AlessandroZ/LaZagne
-		    local('$bid');
-            foreach $bid ($1){
-            lazagne_password($bid);
-            }
+    local('$bid');
+      foreach $bid ($1){
+      lazagne_password($bid);
+      }
 	}
   sub lazagne_password{
     $binary = script_resource("/scripts/PassCapture/lazagne.exe");
