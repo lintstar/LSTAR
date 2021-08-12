@@ -6,7 +6,7 @@
 
 **项目树较为简单直观 且方便 DIY：**
 
-![image-20210812113750414](https://qiniuyun.lintstar.top/hexo/20210812113750.png)
+![image-20210812113750414](LSTAR/20210812113750.png)
 
 >**CobaltStrike 主机上线微信通知插件：**
 >
