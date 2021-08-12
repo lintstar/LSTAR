@@ -17,6 +17,8 @@ popup beacon_bottom {
 popup my_help{
   item("&LSTAR",{url_open("https://github.com/lintstar/LSTAR")});
   separator();
+  item("&微信通知",{url_open("https://github.com/lintstar/PushPlus")});
+  separator();
   item("&凌星阁",{url_open("https://sec.lintstar.top")}); 
 }
 
