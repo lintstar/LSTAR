@@ -100,6 +100,8 @@
 
 [**九世自开 csplugin**](https://github.com/422926799/csplugin)
 
+[EasyPersistent Windows 权限维持](https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md)
+
 # InfoCollect
 
 **添加了 Netview 和 Powerview 功能**
