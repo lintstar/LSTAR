@@ -40,7 +40,7 @@
 
 ## AuthMaintain
 
-**EasyPersistent：**https://github.com/yanghaoi/CobaltStrike_CNA/tree/main/EasyCNA
+**EasyPersistent：https://github.com/yanghaoi/CobaltStrike_CNA/tree/main/EasyCNA**
 
 **新增一个用于 Windows 系统上权限维持的 Cobalt Strike CNA 脚本**
 
@@ -48,7 +48,7 @@
 
 ![image-20210812170907609](LSTAR/20210812170907.png)
 
-**说明文档：**https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md
+**说明文档：https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md**
 
 ![image-20210812170946202](LSTAR/20210812170946.png)
 
