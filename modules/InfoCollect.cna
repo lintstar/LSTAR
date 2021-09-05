@@ -1,4 +1,4 @@
-menu "信息收集" {
+menu "☆ 信息收集" {
 	item "GetIP（云函数）" {
 		brun($bid, "curl cip.cc");
 	}

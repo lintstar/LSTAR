@@ -1,4 +1,4 @@
-menu "内网穿透" {
+menu "☆ 内网穿透" {
 	menu "Nps (无配置文件落地)" {
 		item "上传 npc" {
 			$bid = $1;

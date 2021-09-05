@@ -17,9 +17,7 @@ popup beacon_bottom {
 popup my_help{
   item("&LSTAR",{url_open("https://github.com/lintstar/LSTAR")});
   separator();
-  item("&微信通知",{url_open("https://github.com/lintstar/CS-PushPlus")});
-  separator();
-  item("&凌星阁",{url_open("https://sec.lintstar.top")}); 
+  item("&微信通知",{url_open("https://github.com/lintstar/CS-ServerChan")});
 }
 
 menubar("AboutMe", "my_help");

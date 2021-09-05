@@ -1,4 +1,4 @@
-menu "权限维持"{
+menu "☆ 权限维持"{
 	menu "EasyPersistent" {
 		item "设置常用路径" {
 			local('$bid');

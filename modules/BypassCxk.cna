@@ -1,4 +1,4 @@
-menu "限时免杀"{
+menu "☆ 限时免杀"{
     menu "adduser"{
         item "上传adduser"{
             $bid = $1;

