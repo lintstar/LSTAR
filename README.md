@@ -2,25 +2,130 @@
 
 **本着简化 CS 右键和方便自己集成的目的，对 Reference 里的项目进行了缝合以及二次开 (抄) 发 (袭)** 
 
-**并添加了虚拟机/AV 检测、主机相关密码抓取、 Cxk 限时免杀的 Mimikatz 和 Adduser 等功能**
+**重构和丰富了主机相关凭据获取、多级内网穿透、ZeroLogon 漏洞、免杀的 Mimikatz 和 Adduser 等功能**
 
 **主要包含以下功能模块：**
 
-![image-20210905205933530](image/image-20210905205933530.png)
+![image-20211016172048435](image/image-20211016172048435.png)
 
-**项目树较为简单直观 且方便 DIY：**
+**每个模块均在运行前添加了绿色分割线，方便定位输出信息，提高协作效率**
 
-![image-20210905220400074](image/image-20210905220400074.png)
+![image-20211016170807973](image/image-20211016170807973.png)
 
->**CobaltStrike 主机上线微信通知插件：**
->
->**如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
->
->**如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
+**CobaltStrike 主机上线微信通知插件：**
+
+- **如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
+
+- **如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
 
 ##  免责申明
 
 **本项目仅适用于安全研究及合法的企业安全建设行为   一切后果及责任均由使用者本人承担**
+
+# 2021.10.16 更新
+
+- **对整体模块进行了重新整合以及功能的完善**
+- **每个功能均在运行前添加了绿色分割线，提高协作效率**
+- **横向移动模块新增 ZeroLogon 漏洞的BOF 实现**
+- **凭证获取模块新增 SharpMimiDump 与 LsassDump 配合使用**
+
+## InfoCollect
+
+### GetInfo（一键收集主机信息）
+
+![image-20211014114514618](image/image-20211014114514618.png)
+
+### ListRDP（RDP记录查询）
+
+收集 RDP 内连和外连记录，方便定位运维机以及横向移动
+
+![image-20211016174456005](image/image-20211016174456005.png)
+
+## IntrScan
+
+### Cube（模块化探测）
+
+**新增 Cube 来代替旧版本的爆破，同时支持内网信息收集和 MSSQL 命令执行，详细用法参考运行说明**
+
+![image-20211015174007171](image/image-20211015174007171.png)
+
+### Allin（辅助灵活扫描）
+
+**新增 Allin 来辅助灵活扫描，以远程获取网卡 IP 为例：**
+
+![image-20211015173332706](image/image-20211015173332706.png)
+
+## IntrAgent
+
+### Stowaway （穿透多级内网）
+
+上传 agent 后运行
+
+![image-20211012100041529](image/image-20211012100041529.png)
+
+admin 端收到连接即可构建 Socks5 隧道
+
+![image-20211011203216542](image/image-20211011203216542.png)
+
+删除 agent
+
+![image-20211012094116014](image/image-20211012094116014.png)
+
+## PassCapture
+
+### LsassDump（WinAPI）
+
+**修改了 LsassDump 的运行方式 删除 LsassDump 的同时会一起删除转储的 C:\Windows\Temp\1.dmp**
+
+![image-20211016174730994](image/image-20211016174730994.png)
+
+### Mimidump（远程读取.dmp）
+
+**新增配合 LsassDump（WinAPI）功能，远程读取目标机器转储的 C:\Windows\Temp\1.tmp（.net 4.5）**
+
+![image-20211015094927257](image/image-20211015094927257.png)
+
+## RemoteLogin
+
+**新增了使用  Powershell 开启 关闭以及查询 RDP 相关信息的方法**
+
+![image-20211015145840192](image/image-20211015145840192.png)
+
+> PS 脚本来源于 Reference 中的黑魔鬼插件 RDP 模块
+
+### 查询 RDP 状态
+
+![image-20211015150247382](image/image-20211015150247382.png)
+
+### 开启 RDP 服务
+
+![image-20211015150320880](image/image-20211015150320880.png)
+
+### 获取 RDP 端口
+
+![image-20211015150713858](image/image-20211015150713858.png)
+
+### 查看 RDP 历史登录凭据
+
+![image-20211015150429336](image/image-20211015150429336.png)
+
+### 获取 RDP 历史登录凭据
+
+![image-20211015150502487](image/image-20211015150502487.png)
+
+## LateMovement
+
+### 票据传递
+
+![image-20211016173510988](image/image-20211016173510988.png)
+
+### ZeroLogonBOF
+
+新增了 ZeroLogon 漏洞的BOF 实现
+
+> 参考：https://github.com/rsmudge/ZeroLogon-BOF
+
+![image-20211014143141276](image/image-20211014143141276.png)
 
 # 2021.09.05 更新
 
@@ -68,9 +173,9 @@
 
 ![image-20210904180546301](image/image-20210904180546301.png)
 
-**转储成功后生成的 ` 1.dmp` 会保存在 `C:\Users\Public\` 目录**
+**转储成功后生成的 ` 1.dmp` 会保存在 `C:\Windows\Temp\` 目录**
 
-![image-20210904181006345](image/image-20210904181006345.png)
+![image-20211015093809697](image/image-20211015093809697.png)
 
 **直接本地读取即可：**
 
@@ -162,9 +267,11 @@
 
 [**Z1-AggressorScripts**](https://github.com/z1un/Z1-AggressorScripts)
 
-[**九世自开 csplugin**](https://github.com/422926799/csplugin)
+[**九世自开-csplugin**](https://github.com/422926799/csplugin)
 
 **[EasyPersistent Windows 权限维持](https://github.com/yanghaoi/CobaltStrike_CNA/blob/main/EasyCNA/README.md)**
+
+[**黑魔鬼-CSplugins**](https://github.com/SeaOf0/CSplugins)
 
 # InfoCollect
 
@@ -190,7 +297,7 @@
 
 ![image-20210706110153336](image/image-20210706110153336.png)
 
-**fscan 默认上传至 `C:\\Users\\Public\\`**
+**fscan 默认上传至 `C:\\Windows\\Temp\\`**
 
 ![image-20210706110110475](image/image-20210706110110475.png)
 

