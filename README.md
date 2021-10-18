@@ -12,7 +12,7 @@
 
 ![image-20211016170807973](image/image-20211016170807973.png)
 
-**CobaltStrike 主机上线微信通知插件：**
+>**CobaltStrike 主机上线微信通知插件：**
 
 - **如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
 
