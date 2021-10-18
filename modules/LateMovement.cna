@@ -161,7 +161,7 @@ menu "☆ 横向移动" {
     }
 
     menu "Pass The Ticket" {
-        item "Ms14-068 (KB3011780)" {
+        item "MS14-068 (KB3011780)" {
 			blog($1, "\c9=========== Ms14-068 (KB3011780) ==========");
             show_message("使用此方法会清除本地凭据!!");
             $dialog = dialog("Ms14-068", %(bid => $1["@"] , Domain => "xstark.sec" , user => "administrator" , password => "Admin2012" , user_sid => "域用户SID" , DC_name => "域控") , &Ms14_068);

