@@ -12,11 +12,10 @@
 
 ![image-20211016170807973](image/image-20211016170807973.png)
 
->**CobaltStrike 主机上线微信通知插件：**
-
-- **如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
-
-- **如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
+> **CobaltStrike 主机上线微信通知插件：**
+>
+> - **如果想使用免费且支持微信模板消息推送的方式可以移步：https://github.com/lintstar/CS-PushPlus**
+> - **如果有订阅 ServerChan 的企业微信推送通道可以移步：https://github.com/lintstar/CS-ServerChan**
 
 ##  免责申明
 
@@ -26,7 +25,7 @@
 
 - **对整体功能模块进行了重新整合以及优化完善**
 - **横向移动模块新增 ZeroLogon 漏洞的BOF 实现**
-- **增加了 一些 Assembly 方式运行无文件落地的功能**
+- **增加了一些 Assembly 方式运行无文件落地的功能**
 
 ## InfoCollect
 
@@ -36,7 +35,7 @@
 
 ### SharpListRDP（RDP记录查询）
 
-收集 RDP 内连和外连记录，方便定位运维机以及横向移动
+**收集 RDP 内连和外连记录，方便定位运维机以及横向移动**
 
 ![image-20211016174456005](image/image-20211016174456005.png)
 
@@ -70,15 +69,15 @@
 
 ### Stowaway （穿透多级内网）
 
-上传 agent 后运行
+**上传 agent 后运行**
 
 ![image-20211012100041529](image/image-20211012100041529.png)
 
-admin 端收到连接即可构建 Socks5 隧道
+**admin 端收到连接即可构建 Socks5 隧道**
 
 ![image-20211011203216542](image/image-20211011203216542.png)
 
-删除 agent
+**删除 agent**
 
 ![image-20211012094116014](image/image-20211012094116014.png)
 
@@ -136,7 +135,7 @@ admin 端收到连接即可构建 Socks5 隧道
 
 ### ZeroLogonBOF
 
-新增了 ZeroLogon 漏洞的BOF 实现
+**新增了 ZeroLogon 漏洞的BOF 实现**
 
 > 参考：https://github.com/rsmudge/ZeroLogon-BOF
 
